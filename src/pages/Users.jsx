@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { Search, Ban, Check, Trash2, Eye } from 'lucide-react';
 
 export default function Users() {
@@ -63,12 +63,22 @@ export default function Users() {
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Deseja deletar este usuário? Esta ação não pode ser desfeita!')) {
       try {
-        await deleteDoc(doc(db, 'users', userId));
-        loadUsers();
+        const idToken = await auth.currentUser.getIdToken();
+        const response = await fetch('https://us-central1-butter-1a8d4.cloudfunctions.net/deleteUser', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({ userId }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Erro desconhecido');
+        setUsers(prev => prev.filter(u => u.id !== userId));
         alert('Usuário deletado com sucesso!');
       } catch (error) {
         console.error('Erro ao deletar usuário:', error);
-        alert('Erro ao deletar usuário');
+        alert('Erro ao deletar usuário: ' + error.message);
       }
     }
   };
