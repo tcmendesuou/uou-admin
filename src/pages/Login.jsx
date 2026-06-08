@@ -37,7 +37,7 @@ export default function Login() {
     <div style={styles.container}>
       <div style={styles.card}>
         <div style={styles.header}>
-          <h1 style={styles.logo}>🧈 BUTTER</h1>
+          <h1 style={styles.logo}>UOU</h1>
           <p style={styles.subtitle}>Painel Administrativo</p>
         </div>
 
@@ -49,7 +49,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={styles.input}
-              placeholder="admin@butter.com"
+              placeholder="admin@uou.com"
               required
             />
           </div>
