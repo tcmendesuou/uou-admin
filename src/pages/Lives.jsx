@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Search, Trash2, Eye, Edit, Play, Calendar, XCircle } from 'lucide-react';
 
@@ -9,10 +9,30 @@ export default function Lives() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [selectedLive, setSelectedLive] = useState(null);
+  const [selectedLiveId, setSelectedLiveId] = useState(null);
+
+  // ✅ Live sempre sincronizada com a lista mais recente (não é mais uma
+  // cópia parada no tempo — atualiza sozinha enquanto o modal está aberto)
+  const selectedLive = lives.find(l => l.id === selectedLiveId) || null;
 
   useEffect(() => {
-    loadLives();
+    // ✅ Tempo real: qualquer mudança na live (pote, reserva, sorteio,
+    // status) atualiza a tela na hora, sem precisar recarregar a página
+    const unsubscribe = onSnapshot(collection(db, 'lives'), (snapshot) => {
+      const livesData = [];
+      snapshot.forEach((docSnap) => {
+        livesData.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      const toDate = (val) => val?.toDate ? val.toDate() : new Date(val || 0);
+      livesData.sort((a, b) => toDate(b.createdAt) - toDate(a.createdAt));
+      setLives(livesData);
+      setLoading(false);
+    }, (error) => {
+      console.error('Erro ao carregar lives:', error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -34,29 +54,11 @@ export default function Lives() {
     setFilteredLives(filtered);
   }, [search, filterStatus, lives]);
 
-  const loadLives = async () => {
-    try {
-      const livesSnapshot = await getDocs(collection(db, 'lives'));
-      const livesData = [];
-      livesSnapshot.forEach((doc) => {
-        livesData.push({ id: doc.id, ...doc.data() });
-      });
-      const toDate = (val) => val?.toDate ? val.toDate() : new Date(val || 0);
-      livesData.sort((a, b) => toDate(b.createdAt) - toDate(a.createdAt));
-      setLives(livesData);
-      setFilteredLives(livesData);
-    } catch (error) {
-      console.error('Erro ao carregar lives:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDeleteLive = async (liveId) => {
     if (window.confirm('Deseja deletar esta live? Esta ação não pode ser desfeita!')) {
       try {
         await deleteDoc(doc(db, 'lives', liveId));
-        setLives(prev => prev.filter(l => l.id !== liveId));
+        // ✅ Não precisa mais atualizar a lista manualmente — o onSnapshot já reflete a exclusão sozinho
         alert('Live deletada com sucesso!');
       } catch (error) {
         console.error('Erro ao deletar live:', error);
@@ -70,7 +72,7 @@ export default function Lives() {
       await updateDoc(doc(db, 'lives', liveId), {
         status: newStatus
       });
-      loadLives();
+      // ✅ Não precisa mais recarregar — o onSnapshot já atualiza sozinho
       alert('Status atualizado!');
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
@@ -214,7 +216,7 @@ export default function Lives() {
               <div style={{ ...styles.tableCell, ...styles.actions }}>
                 <button
                   style={styles.actionButton}
-                  onClick={() => setSelectedLive(live)}
+                  onClick={() => setSelectedLiveId(live.id)}
                   title="Ver detalhes"
                 >
                   <Eye size={16} />
@@ -243,13 +245,13 @@ export default function Lives() {
 
       {/* Live Detail Modal */}
       {selectedLive && (
-        <div style={styles.modal} onClick={() => setSelectedLive(null)}>
+        <div style={styles.modal} onClick={() => setSelectedLiveId(null)}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h2 style={styles.modalTitle}>Detalhes da Live</h2>
               <button
                 style={styles.closeButton}
-                onClick={() => setSelectedLive(null)}
+                onClick={() => setSelectedLiveId(null)}
               >
                 ×
               </button>
@@ -313,13 +315,100 @@ export default function Lives() {
                 </div>
               )}
 
+              {/* ✅ Relatório financeiro — só aparece em lives premiadas */}
+              {selectedLive.isPremium && (
+                <div style={styles.reportBox}>
+                  <h4 style={styles.reportTitle}>💰 Relatório Financeiro da Live</h4>
+
+                  <div style={styles.reportRow}>
+                    <span style={styles.reportLabel}>Modo de prêmio</span>
+                    <span style={styles.reportValue}>
+                      {selectedLive.prizeSource === 'wallet' ? 'Valor fixo da carteira' : 'Porcentagem do pote'}
+                    </span>
+                  </div>
+
+                  <div style={styles.reportDivider} />
+
+                  <div style={styles.reportRow}>
+                    <span style={styles.reportLabel}>Carteira da Live (espectadores)</span>
+                    <span style={{ ...styles.reportValue, color: '#22c55e', fontWeight: '700' }}>
+                      R$ {(selectedLive.potBalance || 0).toFixed(2)}
+                    </span>
+                  </div>
+
+                  {selectedLive.prizeSource === 'pot' && (
+                    <div style={styles.reportRow}>
+                      <span style={styles.reportLabel}>Reserva do Prêmio (criador)</span>
+                      <span style={{ ...styles.reportValue, color: selectedLive.prizeReserve > 0 ? '#f59e0b' : '#666' }}>
+                        R$ {(selectedLive.prizeReserve || 0).toFixed(2)}
+                        {selectedLive.prizeReserve > 0 ? ' (ainda não liberada)' : ' (já resolvida)'}
+                      </span>
+                    </div>
+                  )}
+
+                  {selectedLive.prizeSource === 'pot' && (
+                    <div style={styles.reportRow}>
+                      <span style={styles.reportLabel}>% do prêmio sobre o pote</span>
+                      <span style={styles.reportValue}>{selectedLive.prizePercent || 0}%</span>
+                    </div>
+                  )}
+
+                  {selectedLive.prizeSource === 'wallet' && (
+                    <div style={styles.reportRow}>
+                      <span style={styles.reportLabel}>Prêmio fixo definido</span>
+                      <span style={styles.reportValue}>R$ {(selectedLive.prizeAmount || 0).toFixed(2)}</span>
+                    </div>
+                  )}
+
+                  <div style={styles.reportDivider} />
+
+                  {selectedLive.prizeDrawnAt ? (
+                    <>
+                      <div style={styles.reportRow}>
+                        <span style={styles.reportLabel}>🏆 Vencedor do sorteio</span>
+                        <span style={{ ...styles.reportValue, fontWeight: '700' }}>{selectedLive.winnerName || '—'}</span>
+                      </div>
+                      <div style={styles.reportRow}>
+                        <span style={styles.reportLabel}>Prêmio pago</span>
+                        <span style={{ ...styles.reportValue, color: '#22c55e', fontWeight: '700' }}>
+                          R$ {(selectedLive.prizeValuePaid || 0).toFixed(2)}
+                        </span>
+                      </div>
+                      <div style={styles.reportRow}>
+                        <span style={styles.reportLabel}>Sorteio realizado em</span>
+                        <span style={styles.reportValue}>
+                          {new Date(selectedLive.prizeDrawnAt).toLocaleString('pt-BR')}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div style={styles.reportRow}>
+                      <span style={styles.reportLabel}>Sorteio</span>
+                      <span style={styles.reportValue}>Ainda não realizado</span>
+                    </div>
+                  )}
+
+                  {selectedLive.status === 'ended' && (
+                    <>
+                      <div style={styles.reportDivider} />
+                      <div style={styles.reportRow}>
+                        <span style={styles.reportLabel}>Encerrada em</span>
+                        <span style={styles.reportValue}>
+                          {selectedLive.endedAt ? new Date(selectedLive.endedAt).toLocaleString('pt-BR') : '—'}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
               <div style={styles.modalActions}>
                 {selectedLive.status === 'live' && (
                   <button
                     style={{ ...styles.modalButton, ...styles.modalButtonWarning }}
                     onClick={() => {
                       handleUpdateStatus(selectedLive.id, 'ended');
-                      setSelectedLive(null);
+                      setSelectedLiveId(null);
                     }}
                   >
                     Encerrar Live
@@ -329,7 +418,7 @@ export default function Lives() {
                   style={{ ...styles.modalButton, ...styles.modalButtonDanger }}
                   onClick={() => {
                     handleDeleteLive(selectedLive.id);
-                    setSelectedLive(null);
+                    setSelectedLiveId(null);
                   }}
                 >
                   Deletar Live
@@ -614,5 +703,39 @@ const styles = {
   modalButtonDanger: {
     backgroundColor: '#ef4444',
     color: '#fff',
+  },
+  reportBox: {
+    backgroundColor: '#f9fafb',
+    border: '1px solid #e0e0e0',
+    borderRadius: '12px',
+    padding: '16px',
+    marginTop: '16px',
+    marginBottom: '8px',
+  },
+  reportTitle: {
+    fontSize: '14px',
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: '12px',
+    marginTop: 0,
+  },
+  reportRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '6px 0',
+    fontSize: '13px',
+  },
+  reportLabel: {
+    color: '#666',
+  },
+  reportValue: {
+    color: '#111',
+    fontWeight: '500',
+    textAlign: 'right',
+  },
+  reportDivider: {
+    borderTop: '1px solid #e5e7eb',
+    margin: '8px 0',
   },
 };
