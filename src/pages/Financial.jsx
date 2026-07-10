@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, doc, updateDoc, addDoc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, addDoc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { DollarSign, TrendingUp, Users, Video, Search, Check, X } from 'lucide-react';
+import { DollarSign, TrendingUp, Users, Video, Search, Check, X, Trash2 } from 'lucide-react';
 
 export default function Financial() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -48,47 +48,29 @@ export default function Financial() {
 
   const loadFinancialData = async () => {
     try {
-      // Carregar lives para calcular receita
-      const livesSnapshot = await getDocs(collection(db, 'lives'));
+      // ✅ Fonte única de verdade: a coleção `transactions` (dados reais já
+      // gravados pelo app). Antes isso era recalculado a partir do campo
+      // `viewers` das lives, que não é atualizado corretamente (chegou a
+      // aparecer negativo em testes) — por isso os totais sempre davam R$0.
+      const transactionsSnapshot = await getDocs(collection(db, 'transactions'));
+      const transactionsData = [];
       let totalRevenue = 0;
       let platformCommission = 0;
-
-      const transactionsData = [];
-
-      livesSnapshot.forEach((doc) => {
-        const live = doc.data();
-        if (live.status === 'ended' && live.viewers > 0) {
-          const liveRevenue = live.viewers * (live.price || 0);
-          const commission = liveRevenue * 0.2; // 20% da plataforma
-          
-          totalRevenue += liveRevenue;
-          platformCommission += commission;
-
-          transactionsData.push({
-            id: doc.id,
-            type: 'live_revenue',
-            liveTitle: live.title,
-            userName: live.userName,
-            amount: liveRevenue,
-            commission: commission,
-            creatorEarnings: liveRevenue - commission,
-            date: live.createdAt,
-            status: 'completed',
-          });
-        }
-      });
-
-      // Carregar transações (saques pendentes - exemplo)
-      const transactionsSnapshot = await getDocs(collection(db, 'transactions'));
       let pendingWithdrawals = 0;
       let completedWithdrawals = 0;
 
-      transactionsSnapshot.forEach((doc) => {
-        const transaction = doc.data();
+      transactionsSnapshot.forEach((docSnap) => {
+        const transaction = docSnap.data();
         transactionsData.push({
-          id: doc.id,
+          id: docSnap.id,
           ...transaction,
         });
+
+        if (transaction.type === 'live_revenue') {
+          // amountBruto = valor pago pelo espectador; uouFee = comissão real da UOU
+          totalRevenue += transaction.amountBruto || 0;
+          platformCommission += transaction.uouFee || 0;
+        }
 
         if (transaction.type === 'withdrawal') {
           if (transaction.status === 'pending') {
@@ -113,6 +95,18 @@ export default function Financial() {
       console.error('Erro ao carregar dados financeiros:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteTransaction = async (transactionId) => {
+    if (window.confirm('Excluir esta transação? Essa ação não pode ser desfeita.')) {
+      try {
+        await deleteDoc(doc(db, 'transactions', transactionId));
+        loadFinancialData();
+      } catch (error) {
+        console.error('Erro ao excluir transação:', error);
+        alert('Erro ao excluir transação');
+      }
     }
   };
 
@@ -151,6 +145,11 @@ export default function Financial() {
   const getTypeLabel = (type) => {
     switch (type) {
       case 'live_revenue': return 'Receita de Live';
+      case 'live_entry': return 'Entrada na Live';
+      case 'live_premiada_entrada': return 'Entrada do Criador (Reserva)';
+      case 'live_reserva_devolvida': return 'Devolução de Reserva';
+      case 'prize_won': return 'Prêmio Ganho';
+      case 'live_settlement': return 'Acerto Final da Live';
       case 'withdrawal': return 'Saque';
       case 'refund': return 'Reembolso';
       default: return type;
@@ -297,7 +296,7 @@ export default function Financial() {
             <TrendingUp size={24} color="#FFD700" />
           </div>
           <div style={styles.statContent}>
-            <p style={styles.statLabel}>Comissão Plataforma (20%)</p>
+            <p style={styles.statLabel}>Comissão Plataforma (UOU)</p>
             <h2 style={styles.statValue}>
               R$ {stats.platformCommission.toFixed(2)}
             </h2>
@@ -408,8 +407,8 @@ export default function Financial() {
               </div>
               <div style={styles.tableCell}>
                 <p style={styles.cellValue}>
-                  {transaction.commission 
-                    ? `R$ ${transaction.commission.toFixed(2)}`
+                  {transaction.uouFee
+                    ? `R$ ${transaction.uouFee.toFixed(2)}`
                     : '-'
                   }
                 </p>
@@ -443,6 +442,13 @@ export default function Financial() {
                     </button>
                   </>
                 )}
+                <button
+                  style={{ ...styles.actionButton, ...styles.actionDanger }}
+                  onClick={() => handleDeleteTransaction(transaction.id)}
+                  title="Excluir transação"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
           ))}
