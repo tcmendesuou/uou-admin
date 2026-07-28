@@ -8,6 +8,7 @@ import {
   Video, 
   DollarSign,
   TrendingUp,
+  BarChart3,
   Settings, 
   LogOut 
 } from 'lucide-react';
@@ -28,6 +29,7 @@ export default function Layout() {
     { path: '/lives', icon: Video, label: 'Lives' },
     { path: '/financial', icon: DollarSign, label: 'Financeiro' },
     { path: '/creator-levels', icon: TrendingUp, label: 'Níveis de Criadores' },
+    { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/settings', icon: Settings, label: 'Configurações' },
   ];
 
