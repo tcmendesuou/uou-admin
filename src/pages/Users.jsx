@@ -1,7 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import {
+  collection, getDocs, query, where, doc, updateDoc,
+} from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { Search, Ban, Check, Trash2, Eye } from 'lucide-react';
+import {
+  Search, Ban, Check, Trash2, Eye, Pause, Save,
+  Image as ImageIcon, Video, DollarSign, MessageCircle, User as UserIcon,
+} from 'lucide-react';
+
+// Status possíveis de uma conta
+const STATUS = {
+  ACTIVE: 'active',
+  SUSPENDED: 'suspended',
+  BANNED: 'banned',
+};
+
+function getUserStatus(user) {
+  // Compatibilidade com o campo antigo "banned" (booleano)
+  if (user.status) return user.status;
+  if (user.banned) return STATUS.BANNED;
+  return STATUS.ACTIVE;
+}
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -16,7 +35,7 @@ export default function Users() {
 
   useEffect(() => {
     if (search) {
-      const filtered = users.filter(user =>
+      const filtered = users.filter((user) =>
         user.name?.toLowerCase().includes(search.toLowerCase()) ||
         user.email?.toLowerCase().includes(search.toLowerCase())
       );
@@ -30,10 +49,10 @@ export default function Users() {
     try {
       const usersSnapshot = await getDocs(collection(db, 'users'));
       const usersData = [];
-      usersSnapshot.forEach((doc) => {
-        usersData.push({ id: doc.id, ...doc.data() });
+      usersSnapshot.forEach((docSnap) => {
+        usersData.push({ id: docSnap.id, ...docSnap.data() });
       });
-      const toDate = (val) => val?.toDate ? val.toDate() : new Date(val || 0);
+      const toDate = (val) => (val?.toDate ? val.toDate() : new Date(val || 0));
       usersData.sort((a, b) => toDate(b.createdAt) - toDate(a.createdAt));
       setUsers(usersData);
       setFilteredUsers(usersData);
@@ -44,19 +63,21 @@ export default function Users() {
     }
   };
 
-  const handleBanUser = async (userId, currentStatus) => {
-    const action = currentStatus ? 'desbanir' : 'banir';
-    if (window.confirm(`Deseja ${action} este usuário?`)) {
-      try {
-        await updateDoc(doc(db, 'users', userId), {
-          banned: !currentStatus
-        });
-        loadUsers();
-        alert(`Usuário ${action === 'banir' ? 'banido' : 'desbanido'} com sucesso!`);
-      } catch (error) {
-        console.error('Erro ao atualizar usuário:', error);
-        alert('Erro ao atualizar usuário');
+  // Muda o status da conta (ativo / suspenso / banido)
+  const handleChangeStatus = async (userId, newStatus, label) => {
+    if (!window.confirm(`Deseja marcar essa conta como "${label}"?`)) return;
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        status: newStatus,
+        banned: newStatus === STATUS.BANNED,
+      });
+      await loadUsers();
+      if (selectedUser?.id === userId) {
+        setSelectedUser((prev) => ({ ...prev, status: newStatus, banned: newStatus === STATUS.BANNED }));
       }
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      alert('Erro ao atualizar status');
     }
   };
 
@@ -68,13 +89,14 @@ export default function Users() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`,
+            Authorization: `Bearer ${idToken}`,
           },
           body: JSON.stringify({ userId }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Erro desconhecido');
-        setUsers(prev => prev.filter(u => u.id !== userId));
+        setUsers((prev) => prev.filter((u) => u.id !== userId));
+        setSelectedUser(null);
         alert('Usuário deletado com sucesso!');
       } catch (error) {
         console.error('Erro ao deletar usuário:', error);
@@ -96,7 +118,6 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Search */}
       <div style={styles.searchContainer}>
         <Search size={20} color="#999" />
         <input
@@ -108,138 +129,473 @@ export default function Users() {
         />
       </div>
 
-      {/* Users Table */}
       <div style={styles.table}>
         <div style={styles.tableHeader}>
           <div style={{ ...styles.tableCell, flex: 2 }}>Usuário</div>
           <div style={styles.tableCell}>Seguidores</div>
-          <div style={styles.tableCell}>Lives</div>
           <div style={styles.tableCell}>Carteira</div>
           <div style={styles.tableCell}>Status</div>
           <div style={styles.tableCell}>Ações</div>
         </div>
 
         <div style={styles.tableBody}>
-          {filteredUsers.map((user) => (
-            <div key={user.id} style={styles.tableRow}>
-              <div style={{ ...styles.tableCell, flex: 2 }}>
-                <img
-                  src={user.photoURL || 'https://via.placeholder.com/40'}
-                  alt={user.name}
-                  style={styles.userPhoto}
-                />
-                <div>
-                  <p style={styles.userName}>{user.name}</p>
-                  <p style={styles.userEmail}>{user.email}</p>
+          {filteredUsers.map((user) => {
+            const status = getUserStatus(user);
+            return (
+              <div key={user.id} style={styles.tableRow}>
+                <div style={{ ...styles.tableCell, flex: 2 }}>
+                  <img
+                    src={user.photoURL || 'https://via.placeholder.com/40'}
+                    alt={user.name}
+                    style={styles.userPhoto}
+                  />
+                  <div>
+                    <p style={styles.userName}>{user.name}</p>
+                    <p style={styles.userEmail}>{user.email}</p>
+                  </div>
+                </div>
+                <div style={styles.tableCell}>
+                  <p style={styles.cellValue}>{user.followers || 0}</p>
+                </div>
+                <div style={styles.tableCell}>
+                  <p style={styles.cellValue}>R$ {(user.wallet || 0).toFixed(2)}</p>
+                </div>
+                <div style={styles.tableCell}>
+                  <span
+                    style={{
+                      ...styles.statusBadge,
+                      ...(status === STATUS.BANNED
+                        ? styles.statusBanned
+                        : status === STATUS.SUSPENDED
+                        ? styles.statusSuspended
+                        : styles.statusActive),
+                    }}
+                  >
+                    {status === STATUS.BANNED ? 'Banido' : status === STATUS.SUSPENDED ? 'Suspenso' : 'Ativo'}
+                  </span>
+                </div>
+                <div style={{ ...styles.tableCell, ...styles.actions }}>
+                  <button
+                    style={styles.actionButton}
+                    onClick={() => setSelectedUser(user)}
+                    title="Ver detalhes"
+                  >
+                    <Eye size={16} />
+                  </button>
+                  <button
+                    style={{ ...styles.actionButton, ...styles.actionDanger }}
+                    onClick={() => handleDeleteUser(user.id)}
+                    title="Deletar"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
-              <div style={styles.tableCell}>
-                <p style={styles.cellValue}>{user.followers || 0}</p>
-              </div>
-              <div style={styles.tableCell}>
-                <p style={styles.cellValue}>-</p>
-              </div>
-              <div style={styles.tableCell}>
-                <p style={styles.cellValue}>
-                  R$ {(user.wallet || 0).toFixed(2)}
-                </p>
-              </div>
-              <div style={styles.tableCell}>
-                <span style={{
-                  ...styles.statusBadge,
-                  ...(user.banned ? styles.statusBanned : styles.statusActive)
-                }}>
-                  {user.banned ? 'Banido' : 'Ativo'}
-                </span>
-              </div>
-              <div style={{ ...styles.tableCell, ...styles.actions }}>
-                <button
-                  style={styles.actionButton}
-                  onClick={() => setSelectedUser(user)}
-                  title="Ver detalhes"
-                >
-                  <Eye size={16} />
-                </button>
-                <button
-                  style={{
-                    ...styles.actionButton,
-                    ...(user.banned ? styles.actionSuccess : styles.actionWarning)
-                  }}
-                  onClick={() => handleBanUser(user.id, user.banned)}
-                  title={user.banned ? 'Desbanir' : 'Banir'}
-                >
-                  {user.banned ? <Check size={16} /> : <Ban size={16} />}
-                </button>
-                <button
-                  style={{ ...styles.actionButton, ...styles.actionDanger }}
-                  onClick={() => handleDeleteUser(user.id)}
-                  title="Deletar"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* User Detail Modal */}
       {selectedUser && (
-        <div style={styles.modal} onClick={() => setSelectedUser(null)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h2 style={styles.modalTitle}>Detalhes do Usuário</h2>
-              <button
-                style={styles.closeButton}
-                onClick={() => setSelectedUser(null)}
-              >
-                ×
-              </button>
-            </div>
-            <div style={styles.modalBody}>
-              <img
-                src={selectedUser.photoURL || 'https://via.placeholder.com/100'}
-                alt={selectedUser.name}
-                style={styles.modalPhoto}
-              />
-              <div style={styles.modalInfo}>
-                <p style={styles.modalLabel}>Nome</p>
-                <p style={styles.modalValue}>{selectedUser.name}</p>
-              </div>
-              <div style={styles.modalInfo}>
-                <p style={styles.modalLabel}>Email</p>
-                <p style={styles.modalValue}>{selectedUser.email}</p>
-              </div>
-              <div style={styles.modalInfo}>
-                <p style={styles.modalLabel}>Bio</p>
-                <p style={styles.modalValue}>{selectedUser.bio || 'Sem bio'}</p>
-              </div>
-              <div style={styles.modalStats}>
-                <div style={styles.modalStat}>
-                  <p style={styles.modalStatValue}>{selectedUser.followers || 0}</p>
-                  <p style={styles.modalStatLabel}>Seguidores</p>
-                </div>
-                <div style={styles.modalStat}>
-                  <p style={styles.modalStatValue}>{selectedUser.following || 0}</p>
-                  <p style={styles.modalStatLabel}>Seguindo</p>
-                </div>
-                <div style={styles.modalStat}>
-                  <p style={styles.modalStatValue}>
-                    R$ {(selectedUser.wallet || 0).toFixed(2)}
-                  </p>
-                  <p style={styles.modalStatLabel}>Carteira</p>
-                </div>
-              </div>
-              <div style={styles.modalInfo}>
-                <p style={styles.modalLabel}>Cadastrado em</p>
-                <p style={styles.modalValue}>
-                  {(selectedUser.createdAt?.toDate ? selectedUser.createdAt.toDate() : new Date(selectedUser.createdAt || 0)).toLocaleString('pt-BR')}
-                </p>
-              </div>
+        <UserDetailPanel
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+          onChangeStatus={handleChangeStatus}
+          onSaved={loadUsers}
+        />
+      )}
+    </div>
+  );
+}
+
+function UserDetailPanel({ user, onClose, onChangeStatus, onSaved }) {
+  const [tab, setTab] = useState('perfil');
+  const status = getUserStatus(user);
+
+  return (
+    <div style={styles.modal} onClick={onClose}>
+      <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src={user.photoURL || 'https://via.placeholder.com/50'} alt={user.name} style={styles.headerPhoto} />
+            <div>
+              <h2 style={styles.modalTitle}>{user.name}</h2>
+              <p style={styles.userEmail}>{user.email}</p>
             </div>
           </div>
+          <button style={styles.closeButton} onClick={onClose}>×</button>
+        </div>
+
+        <div style={styles.statusActionsRow}>
+          <span
+            style={{
+              ...styles.statusBadge,
+              ...(status === STATUS.BANNED
+                ? styles.statusBanned
+                : status === STATUS.SUSPENDED
+                ? styles.statusSuspended
+                : styles.statusActive),
+            }}
+          >
+            {status === STATUS.BANNED ? 'Banido' : status === STATUS.SUSPENDED ? 'Suspenso' : 'Ativo'}
+          </span>
+          {status !== STATUS.ACTIVE && (
+            <button
+              style={{ ...styles.pillButton, ...styles.pillSuccess }}
+              onClick={() => onChangeStatus(user.id, STATUS.ACTIVE, 'Ativo')}
+            >
+              <Check size={14} /> Reativar
+            </button>
+          )}
+          {status !== STATUS.SUSPENDED && (
+            <button
+              style={{ ...styles.pillButton, ...styles.pillWarning }}
+              onClick={() => onChangeStatus(user.id, STATUS.SUSPENDED, 'Suspenso')}
+            >
+              <Pause size={14} /> Suspender
+            </button>
+          )}
+          {status !== STATUS.BANNED && (
+            <button
+              style={{ ...styles.pillButton, ...styles.pillDanger }}
+              onClick={() => onChangeStatus(user.id, STATUS.BANNED, 'Banido')}
+            >
+              <Ban size={14} /> Banir
+            </button>
+          )}
+        </div>
+
+        <div style={styles.tabsRow}>
+          {[
+            { id: 'perfil', label: 'Perfil', icon: UserIcon },
+            { id: 'posts', label: 'Posts', icon: ImageIcon },
+            { id: 'lives', label: 'Lives', icon: Video },
+            { id: 'financeiro', label: 'Financeiro', icon: DollarSign },
+            { id: 'mensagens', label: 'Mensagens', icon: MessageCircle },
+          ].map((t) => (
+            <button
+              key={t.id}
+              style={{ ...styles.tabButton, ...(tab === t.id ? styles.tabButtonActive : {}) }}
+              onClick={() => setTab(t.id)}
+            >
+              <t.icon size={14} /> {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div style={styles.modalBody}>
+          {tab === 'perfil' && <ProfileTab user={user} onSaved={onSaved} />}
+          {tab === 'posts' && <PostsTab userId={user.id} />}
+          {tab === 'lives' && <LivesTab userId={user.id} />}
+          {tab === 'financeiro' && <FinanceiroTab user={user} onSaved={onSaved} />}
+          {tab === 'mensagens' && <MensagensTab userId={user.id} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileTab({ user, onSaved }) {
+  const [name, setName] = useState(user.name || '');
+  const [bio, setBio] = useState(user.bio || '');
+  const [saving, setSaving] = useState(false);
+
+  const hasChanges = name !== (user.name || '') || bio !== (user.bio || '');
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', user.id), { name, bio });
+      await onSaved();
+      alert('Perfil atualizado!');
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error);
+      alert('Erro ao salvar perfil');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toDate = (val) => (val?.toDate ? val.toDate() : new Date(val || 0));
+
+  return (
+    <div>
+      <div style={styles.field}>
+        <label style={styles.fieldLabel}>Nome</label>
+        <input style={styles.fieldInput} value={name} onChange={(e) => setName(e.target.value)} />
+      </div>
+      <div style={styles.field}>
+        <label style={styles.fieldLabel}>Bio</label>
+        <textarea
+          style={{ ...styles.fieldInput, minHeight: '70px' }}
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+        />
+      </div>
+      {hasChanges && (
+        <button style={styles.saveButton} onClick={handleSave} disabled={saving}>
+          <Save size={14} /> {saving ? 'Salvando...' : 'Salvar alterações'}
+        </button>
+      )}
+
+      <div style={styles.modalStats}>
+        <div style={styles.modalStat}>
+          <p style={styles.modalStatValue}>{user.followers || 0}</p>
+          <p style={styles.modalStatLabel}>Seguidores</p>
+        </div>
+        <div style={styles.modalStat}>
+          <p style={styles.modalStatValue}>{user.following || 0}</p>
+          <p style={styles.modalStatLabel}>Seguindo</p>
+        </div>
+        <div style={styles.modalStat}>
+          <p style={styles.modalStatValue}>{user.isPrivate ? 'Sim' : 'Não'}</p>
+          <p style={styles.modalStatLabel}>Conta Privada</p>
+        </div>
+      </div>
+
+      <div style={styles.field}>
+        <p style={styles.fieldLabel}>Cadastrado em</p>
+        <p style={styles.modalValue}>{toDate(user.createdAt).toLocaleString('pt-BR')}</p>
+      </div>
+      <div style={styles.field}>
+        <p style={styles.fieldLabel}>ID da conta</p>
+        <p style={{ ...styles.modalValue, fontFamily: 'monospace', fontSize: '12px' }}>{user.id}</p>
+      </div>
+    </div>
+  );
+}
+
+function PostsTab({ userId }) {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const q = query(collection(db, 'posts'), where('userId', '==', userId));
+        const snap = await getDocs(q);
+        const data = [];
+        snap.forEach((d) => data.push({ id: d.id, ...d.data() }));
+        const toDate = (val) => (val?.toDate ? val.toDate() : new Date(val || 0));
+        data.sort((a, b) => toDate(b.createdAt) - toDate(a.createdAt));
+        setPosts(data);
+      } catch (error) {
+        console.error('Erro ao carregar posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [userId]);
+
+  if (loading) return <p style={styles.emptyText}>Carregando...</p>;
+  if (posts.length === 0) return <p style={styles.emptyText}>Nenhum post publicado</p>;
+
+  const byType = posts.reduce((acc, p) => {
+    const t = p.mediaType || p.type || 'outro';
+    acc[t] = (acc[t] || 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <div>
+      <div style={styles.modalStats}>
+        <div style={styles.modalStat}>
+          <p style={styles.modalStatValue}>{posts.length}</p>
+          <p style={styles.modalStatLabel}>Total</p>
+        </div>
+        {Object.entries(byType).map(([type, count]) => (
+          <div key={type} style={styles.modalStat}>
+            <p style={styles.modalStatValue}>{count}</p>
+            <p style={styles.modalStatLabel}>{type}</p>
+          </div>
+        ))}
+      </div>
+      <div style={styles.listContainer}>
+        {posts.map((p) => (
+          <div key={p.id} style={styles.listRow}>
+            <span style={styles.listRowTitle}>{p.caption || '(sem legenda)'}</span>
+            <span style={styles.listRowMeta}>
+              curtidas: {p.likes || 0} · comentarios: {p.commentsCount || 0}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LivesTab({ userId }) {
+  const [lives, setLives] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const q = query(collection(db, 'lives'), where('userId', '==', userId));
+        const snap = await getDocs(q);
+        const data = [];
+        snap.forEach((d) => data.push({ id: d.id, ...d.data() }));
+        const toDate = (val) => (val?.toDate ? val.toDate() : new Date(val || 0));
+        data.sort((a, b) => toDate(b.createdAt) - toDate(a.createdAt));
+        setLives(data);
+      } catch (error) {
+        console.error('Erro ao carregar lives:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [userId]);
+
+  if (loading) return <p style={styles.emptyText}>Carregando...</p>;
+  if (lives.length === 0) return <p style={styles.emptyText}>Nenhuma live criada</p>;
+
+  return (
+    <div>
+      <div style={styles.modalStats}>
+        <div style={styles.modalStat}>
+          <p style={styles.modalStatValue}>{lives.length}</p>
+          <p style={styles.modalStatLabel}>Total</p>
+        </div>
+        <div style={styles.modalStat}>
+          <p style={styles.modalStatValue}>{lives.filter((l) => l.isPremium).length}</p>
+          <p style={styles.modalStatLabel}>Premiadas</p>
+        </div>
+      </div>
+      <div style={styles.listContainer}>
+        {lives.map((l) => (
+          <div key={l.id} style={styles.listRow}>
+            <span style={styles.listRowTitle}>{l.title || '(sem título)'}</span>
+            <span style={styles.listRowMeta}>
+              {l.isPremium ? 'Premiada' : 'Grátis'} · {l.status || '-'}
+              {l.location ? ` · localizacao: ${l.location.lat?.toFixed(2)}, ${l.location.lng?.toFixed(2)}` : ''}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FinanceiroTab({ user, onSaved }) {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newWallet, setNewWallet] = useState((user.wallet || 0).toFixed(2));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const q = query(collection(db, 'transactions'), where('userId', '==', user.id));
+        const snap = await getDocs(q);
+        const data = [];
+        snap.forEach((d) => data.push({ id: d.id, ...d.data() }));
+        data.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        setTransactions(data);
+      } catch (error) {
+        console.error('Erro ao carregar transações:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [user.id]);
+
+  const handleSaveWallet = async () => {
+    const value = parseFloat(newWallet.replace(',', '.'));
+    if (isNaN(value) || value < 0) return alert('Valor inválido');
+    if (!window.confirm(`Alterar saldo de R$ ${(user.wallet || 0).toFixed(2)} para R$ ${value.toFixed(2)}?`)) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', user.id), { wallet: value });
+      await onSaved();
+      alert('Saldo atualizado!');
+    } catch (error) {
+      console.error('Erro ao atualizar saldo:', error);
+      alert('Erro ao atualizar saldo');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div>
+      <div style={styles.field}>
+        <label style={styles.fieldLabel}>Saldo atual — editar manualmente</label>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input
+            style={styles.fieldInput}
+            value={newWallet}
+            onChange={(e) => setNewWallet(e.target.value)}
+          />
+          <button style={styles.saveButton} onClick={handleSaveWallet} disabled={saving}>
+            <Save size={14} /> {saving ? 'Salvando...' : 'Salvar'}
+          </button>
+        </div>
+      </div>
+
+      <p style={{ ...styles.fieldLabel, marginTop: '20px' }}>Extrato</p>
+      {loading ? (
+        <p style={styles.emptyText}>Carregando...</p>
+      ) : transactions.length === 0 ? (
+        <p style={styles.emptyText}>Nenhuma transação</p>
+      ) : (
+        <div style={styles.listContainer}>
+          {transactions.map((t) => (
+            <div key={t.id} style={styles.listRow}>
+              <span style={styles.listRowTitle}>{t.description || t.type}</span>
+              <span style={styles.listRowMeta}>
+                R$ {(t.amount || 0).toFixed(2)} · {new Date(t.date).toLocaleDateString('pt-BR')}
+              </span>
+            </div>
+          ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function MensagensTab({ userId }) {
+  const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const q = query(collection(db, 'conversations'), where('participants', 'array-contains', userId));
+        const snap = await getDocs(q);
+        const data = [];
+        snap.forEach((d) => data.push({ id: d.id, ...d.data() }));
+        data.sort((a, b) => new Date(b.lastMessageTime || 0) - new Date(a.lastMessageTime || 0));
+        setConversations(data);
+      } catch (error) {
+        console.error('Erro ao carregar conversas:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [userId]);
+
+  if (loading) return <p style={styles.emptyText}>Carregando...</p>;
+  if (conversations.length === 0) return <p style={styles.emptyText}>Nenhuma conversa</p>;
+
+  return (
+    <div>
+      <p style={{ ...styles.emptyText, marginBottom: '12px' }}>
+        Por privacidade, o conteúdo das mensagens não é exibido aqui — só a lista de conversas.
+      </p>
+      <div style={styles.listContainer}>
+        {conversations.map((c) => (
+          <div key={c.id} style={styles.listRow}>
+            <span style={styles.listRowTitle}>{c.lastMessage || '(sem mensagens)'}</span>
+            <span style={styles.listRowMeta}>
+              {c.lastMessageTime ? new Date(c.lastMessageTime).toLocaleString('pt-BR') : '-'}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -354,6 +710,10 @@ const styles = {
     backgroundColor: 'rgba(76, 175, 80, 0.15)',
     color: '#2e7d32',
   },
+  statusSuspended: {
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    color: '#b45309',
+  },
   statusBanned: {
     backgroundColor: 'rgba(255, 0, 0, 0.1)',
     color: '#c62828',
@@ -371,14 +731,6 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     transition: 'all 0.2s',
-  },
-  actionWarning: {
-    borderColor: '#f59e0b',
-    color: '#f59e0b',
-  },
-  actionSuccess: {
-    borderColor: '#4CAF50',
-    color: '#4CAF50',
   },
   actionDanger: {
     borderColor: '#ef4444',
@@ -401,8 +753,8 @@ const styles = {
     borderRadius: '12px',
     border: '1px solid #e0e0e0',
     width: '90%',
-    maxWidth: '500px',
-    maxHeight: '80vh',
+    maxWidth: '700px',
+    maxHeight: '85vh',
     overflow: 'auto',
     boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
   },
@@ -413,8 +765,14 @@ const styles = {
     padding: '20px',
     borderBottom: '1px solid #e0e0e0',
   },
+  headerPhoto: {
+    width: '50px',
+    height: '50px',
+    borderRadius: '25px',
+    objectFit: 'cover',
+  },
   modalTitle: {
-    fontSize: '20px',
+    fontSize: '18px',
     fontWeight: 'bold',
     color: '#111',
   },
@@ -426,24 +784,88 @@ const styles = {
     cursor: 'pointer',
     lineHeight: '20px',
   },
+  statusActionsRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '16px 20px',
+    borderBottom: '1px solid #f0f0f0',
+    flexWrap: 'wrap',
+  },
+  pillButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '6px 14px',
+    borderRadius: '20px',
+    border: '1px solid #e0e0e0',
+    backgroundColor: '#fff',
+    fontSize: '12px',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+  pillSuccess: { borderColor: '#4CAF50', color: '#2e7d32' },
+  pillWarning: { borderColor: '#f59e0b', color: '#b45309' },
+  pillDanger: { borderColor: '#ef4444', color: '#c62828' },
+  tabsRow: {
+    display: 'flex',
+    gap: '4px',
+    padding: '12px 20px 0',
+    borderBottom: '1px solid #f0f0f0',
+    overflowX: 'auto',
+  },
+  tabButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '10px 14px',
+    border: 'none',
+    borderBottom: '2px solid transparent',
+    backgroundColor: 'transparent',
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#666',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  tabButtonActive: {
+    color: '#111',
+    borderBottomColor: '#111',
+    fontWeight: 'bold',
+  },
   modalBody: {
     padding: '20px',
   },
-  modalPhoto: {
-    width: '100px',
-    height: '100px',
-    borderRadius: '50px',
-    objectFit: 'cover',
-    display: 'block',
-    margin: '0 auto 24px',
+  field: {
+    marginBottom: '16px',
   },
-  modalInfo: {
-    marginBottom: '20px',
-  },
-  modalLabel: {
+  fieldLabel: {
     fontSize: '12px',
     color: '#666',
-    marginBottom: '4px',
+    marginBottom: '6px',
+    display: 'block',
+  },
+  fieldInput: {
+    width: '100%',
+    padding: '10px 12px',
+    borderRadius: '8px',
+    border: '1px solid #e0e0e0',
+    fontSize: '14px',
+    color: '#111',
+    boxSizing: 'border-box',
+  },
+  saveButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    border: 'none',
+    backgroundColor: '#111',
+    color: '#fff',
+    fontSize: '13px',
+    fontWeight: '600',
+    cursor: 'pointer',
   },
   modalValue: {
     fontSize: '14px',
@@ -452,23 +874,62 @@ const styles = {
   modalStats: {
     display: 'flex',
     justifyContent: 'space-around',
-    padding: '20px',
+    padding: '16px',
     backgroundColor: '#f9f9f9',
     borderRadius: '8px',
-    marginBottom: '20px',
+    marginBottom: '16px',
     border: '1px solid #e0e0e0',
+    flexWrap: 'wrap',
+    gap: '10px',
   },
   modalStat: {
     textAlign: 'center',
   },
   modalStatValue: {
-    fontSize: '24px',
+    fontSize: '22px',
     fontWeight: 'bold',
     color: '#111',
-    marginBottom: '4px',
+    marginBottom: '2px',
   },
   modalStatLabel: {
-    fontSize: '12px',
+    fontSize: '11px',
     color: '#666',
+    textTransform: 'capitalize',
+  },
+  listContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    maxHeight: '350px',
+    overflowY: 'auto',
+  },
+  listRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px 12px',
+    borderRadius: '8px',
+    backgroundColor: '#f9f9f9',
+    border: '1px solid #f0f0f0',
+    gap: '10px',
+  },
+  listRowTitle: {
+    fontSize: '13px',
+    color: '#111',
+    flex: 1,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  listRowMeta: {
+    fontSize: '11px',
+    color: '#666',
+    flexShrink: 0,
+  },
+  emptyText: {
+    color: '#999',
+    fontSize: '13px',
+    textAlign: 'center',
+    padding: '20px',
   },
 };
