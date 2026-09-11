@@ -38,7 +38,7 @@ export default function Layout() {
     <div style={styles.container}>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       />
       {/* Sidebar */}
       <aside style={styles.sidebar}>
@@ -82,7 +82,7 @@ const styles = {
     display: 'flex',
     height: '100vh',
     backgroundColor: '#000',
-    fontFamily: "'Inter', -apple-system, sans-serif",
+    fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif",
   },
   sidebar: {
     width: '260px',
@@ -100,8 +100,9 @@ const styles = {
     justifyContent: 'center',
   },
   logoImg: {
-    maxWidth: '140px',
-    maxHeight: '60px',
+    maxWidth: '210px',
+    maxHeight: '100px',
+    width: '100%',
     objectFit: 'contain',
   },
   nav: {
