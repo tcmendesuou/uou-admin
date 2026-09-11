@@ -77,7 +77,7 @@ const styles = {
   container: {
     display: 'flex',
     height: '100vh',
-    backgroundColor: '#f0f2f5',
+    backgroundColor: '#000',
   },
   sidebar: {
     width: '260px',
@@ -146,6 +146,6 @@ const styles = {
     flex: 1,
     overflow: 'auto',
     padding: '40px',
-    backgroundColor: '#f0f2f5',
+    backgroundColor: '#000',
   },
 };
