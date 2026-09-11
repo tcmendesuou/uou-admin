@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Users, Video, DollarSign, TrendingUp } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -97,45 +96,25 @@ export default function Dashboard() {
       {/* Cards de Estatísticas */}
       <div style={styles.statsGrid}>
         <div style={styles.statCard}>
-          <div style={styles.statIcon}>
-            <Users size={24} color="#FFD700" />
-          </div>
-          <div style={styles.statContent}>
-            <p style={styles.statLabel}>Total de Usuários</p>
-            <h2 style={styles.statValue}>{stats.totalUsers}</h2>
-          </div>
+          <p style={styles.statLabel}>Total de Usuários</p>
+          <h2 style={styles.statValue}>{stats.totalUsers}</h2>
         </div>
 
         <div style={styles.statCard}>
-          <div style={styles.statIcon}>
-            <Video size={24} color="#4CAF50" />
-          </div>
-          <div style={styles.statContent}>
-            <p style={styles.statLabel}>Total de Lives</p>
-            <h2 style={styles.statValue}>{stats.totalLives}</h2>
-          </div>
+          <p style={styles.statLabel}>Total de Lives</p>
+          <h2 style={styles.statValue}>{stats.totalLives}</h2>
         </div>
 
         <div style={styles.statCard}>
-          <div style={styles.statIcon}>
-            <TrendingUp size={24} color="#ff0000" />
-          </div>
-          <div style={styles.statContent}>
-            <p style={styles.statLabel}>Lives Ativas</p>
-            <h2 style={styles.statValue}>{stats.activeLives}</h2>
-          </div>
+          <p style={styles.statLabel}>Lives Ativas</p>
+          <h2 style={styles.statValue}>{stats.activeLives}</h2>
         </div>
 
         <div style={styles.statCard}>
-          <div style={styles.statIcon}>
-            <DollarSign size={24} color="#FFD700" />
-          </div>
-          <div style={styles.statContent}>
-            <p style={styles.statLabel}>Receita Total (20%)</p>
-            <h2 style={styles.statValue}>
-              R$ {stats.totalRevenue.toFixed(2)}
-            </h2>
-          </div>
+          <p style={styles.statLabel}>Receita Total (20%)</p>
+          <h2 style={styles.statValue}>
+            R$ {stats.totalRevenue.toFixed(2)}
+          </h2>
         </div>
       </div>
 
@@ -203,17 +182,17 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     height: '400px',
-    color: '#666',
+    color: '#999',
   },
   title: {
     fontSize: '32px',
     fontWeight: 'bold',
-    color: '#111',
+    color: '#fff',
     marginBottom: '8px',
   },
   subtitle: {
     fontSize: '16px',
-    color: '#666',
+    color: '#999',
     marginBottom: '40px',
   },
   statsGrid: {
@@ -223,35 +202,20 @@ const styles = {
     marginBottom: '40px',
   },
   statCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#262626',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #e0e0e0',
-    display: 'flex',
-    gap: '16px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-  },
-  statIcon: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '12px',
-    backgroundColor: '#f5f5f5',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statContent: {
-    flex: 1,
+    border: '1px solid #333',
   },
   statLabel: {
     fontSize: '14px',
-    color: '#666',
+    color: '#999',
     marginBottom: '8px',
   },
   statValue: {
     fontSize: '28px',
     fontWeight: 'bold',
-    color: '#111',
+    color: '#4CAF50',
   },
   tablesGrid: {
     display: 'grid',
@@ -259,16 +223,15 @@ const styles = {
     gap: '20px',
   },
   tableCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#262626',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #e0e0e0',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+    border: '1px solid #333',
   },
   tableTitle: {
     fontSize: '18px',
     fontWeight: 'bold',
-    color: '#111',
+    color: '#fff',
     marginBottom: '20px',
   },
   table: {
@@ -281,9 +244,9 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '12px',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#333',
     borderRadius: '8px',
-    border: '1px solid #eee',
+    border: '1px solid #3a3a3a',
   },
   tableCell: {
     flex: 1,
@@ -291,16 +254,16 @@ const styles = {
   tableCellTitle: {
     fontSize: '14px',
     fontWeight: '500',
-    color: '#111',
+    color: '#fff',
     marginBottom: '4px',
   },
   tableCellSubtitle: {
     fontSize: '12px',
-    color: '#666',
+    color: '#999',
   },
   tableCellValue: {
     fontSize: '14px',
-    color: '#666',
+    color: '#999',
     textAlign: 'right',
   },
   statusBadge: {
@@ -312,11 +275,11 @@ const styles = {
   },
   statusLive: {
     backgroundColor: 'rgba(255, 0, 0, 0.2)',
-    color: '#ff0000',
+    color: '#ff6b6b',
   },
   statusScheduled: {
     backgroundColor: 'rgba(255, 215, 0, 0.2)',
-    color: '#FFD700',
+    color: '#ffd94d',
   },
   statusEnded: {
     backgroundColor: 'rgba(153, 153, 153, 0.2)',

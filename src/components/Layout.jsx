@@ -38,8 +38,7 @@ export default function Layout() {
       {/* Sidebar */}
       <aside style={styles.sidebar}>
         <div style={styles.logo}>
-          <h1 style={styles.logoText}>UOU</h1>
-          <p style={styles.logoSubtext}>Admin</p>
+          <img src="/logo.png" alt="UOU" style={styles.logoImg} />
         </div>
 
         <nav style={styles.nav}>
@@ -91,19 +90,13 @@ const styles = {
     marginBottom: '40px',
     paddingBottom: '20px',
     borderBottom: '1px solid #222',
+    display: 'flex',
+    justifyContent: 'center',
   },
-  logoText: {
-    fontSize: '28px',
-    fontWeight: '900',
-    color: '#fff',
-    marginBottom: '4px',
-    letterSpacing: '2px',
-  },
-  logoSubtext: {
-    fontSize: '11px',
-    color: '#666',
-    textTransform: 'uppercase',
-    letterSpacing: '2px',
+  logoImg: {
+    maxWidth: '140px',
+    maxHeight: '60px',
+    objectFit: 'contain',
   },
   nav: {
     flex: 1,
@@ -117,7 +110,7 @@ const styles = {
     gap: '12px',
     padding: '12px 16px',
     borderRadius: '8px',
-    color: '#aaa',
+    color: '#ddd',
     textDecoration: 'none',
     fontSize: '14px',
     fontWeight: '500',
@@ -125,8 +118,8 @@ const styles = {
     cursor: 'pointer',
   },
   navItemActive: {
-    backgroundColor: '#fff',
-    color: '#000',
+    backgroundColor: 'rgba(76, 175, 80, 0.7)',
+    color: '#fff',
   },
   logoutButton: {
     display: 'flex',
