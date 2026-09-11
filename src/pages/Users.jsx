@@ -707,8 +707,8 @@ const styles = {
     textTransform: 'uppercase',
   },
   statusActive: {
-    backgroundColor: 'rgba(76, 175, 80, 0.15)',
-    color: '#4ade80',
+    backgroundColor: 'rgba(0, 230, 118, 0.15)',
+    color: '#00E676',
   },
   statusSuspended: {
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
@@ -804,7 +804,7 @@ const styles = {
     fontWeight: '600',
     cursor: 'pointer',
   },
-  pillSuccess: { borderColor: '#4CAF50', color: '#4ade80' },
+  pillSuccess: { borderColor: '#00E676', color: '#00E676' },
   pillWarning: { borderColor: '#f59e0b', color: '#fbbf24' },
   pillDanger: { borderColor: '#ef4444', color: '#f87171' },
   tabsRow: {

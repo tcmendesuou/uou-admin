@@ -215,7 +215,7 @@ const styles = {
   statValue: {
     fontSize: '28px',
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: '#00E676',
   },
   tablesGrid: {
     display: 'grid',

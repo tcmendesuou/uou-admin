@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import logoImg from '../assets/logo.png';
 import { 
   LayoutDashboard, 
   Users, 
@@ -35,10 +36,14 @@ export default function Layout() {
 
   return (
     <div style={styles.container}>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+      />
       {/* Sidebar */}
       <aside style={styles.sidebar}>
         <div style={styles.logo}>
-          <img src="/logo.png" alt="UOU" style={styles.logoImg} />
+          <img src={logoImg} alt="UOU" style={styles.logoImg} />
         </div>
 
         <nav style={styles.nav}>
@@ -77,6 +82,7 @@ const styles = {
     display: 'flex',
     height: '100vh',
     backgroundColor: '#000',
+    fontFamily: "'Inter', -apple-system, sans-serif",
   },
   sidebar: {
     width: '260px',
@@ -118,7 +124,7 @@ const styles = {
     cursor: 'pointer',
   },
   navItemActive: {
-    backgroundColor: 'rgba(76, 175, 80, 0.7)',
+    backgroundColor: 'rgba(0, 230, 118, 0.7)',
     color: '#fff',
   },
   logoutButton: {
