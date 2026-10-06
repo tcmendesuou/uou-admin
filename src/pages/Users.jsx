@@ -81,6 +81,26 @@ export default function Users() {
     }
   };
 
+  // ✅ Selo de verificado (manual, por enquanto sem regras).
+  // Escreve SOMENTE o campo `verification` (as regras do Firestore negam se
+  // vier misturado com outro campo) e manda o map inteiro, pois o update()
+  // substitui o map em vez de fazer merge.
+  const handleToggleVerified = async (user, checked) => {
+    const verification = {
+      status: checked ? 'approved' : 'none',
+      verifiedAt: checked ? new Date().toISOString() : null,
+      updatedBy: auth.currentUser?.uid ?? null,
+    };
+    try {
+      await updateDoc(doc(db, 'users', user.id), { verification });
+      setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, verification } : u)));
+      setSelectedUser((prev) => (prev && prev.id === user.id ? { ...prev, verification } : prev));
+    } catch (error) {
+      console.error('Erro ao atualizar verificação:', error);
+      alert('Erro ao atualizar verificação');
+    }
+  };
+
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Deseja deletar este usuário? Esta ação não pode ser desfeita!')) {
       try {
@@ -201,6 +221,7 @@ export default function Users() {
           user={selectedUser}
           onClose={() => setSelectedUser(null)}
           onChangeStatus={handleChangeStatus}
+          onToggleVerified={handleToggleVerified}
           onSaved={loadUsers}
         />
       )}
@@ -208,7 +229,7 @@ export default function Users() {
   );
 }
 
-function UserDetailPanel({ user, onClose, onChangeStatus, onSaved }) {
+function UserDetailPanel({ user, onClose, onChangeStatus, onToggleVerified, onSaved }) {
   const [tab, setTab] = useState('perfil');
   const status = getUserStatus(user);
 
@@ -263,6 +284,14 @@ function UserDetailPanel({ user, onClose, onChangeStatus, onSaved }) {
               <Ban size={14} /> Banir
             </button>
           )}
+          <label style={styles.verifiedLabel}>
+            <input
+              type="checkbox"
+              checked={user.verification?.status === 'approved'}
+              onChange={(e) => onToggleVerified(user, e.target.checked)}
+            />
+            Verificado
+          </label>
         </div>
 
         <div style={styles.tabsRow}>
@@ -807,6 +836,16 @@ const styles = {
   pillSuccess: { borderColor: '#00E676', color: '#00E676' },
   pillWarning: { borderColor: '#f59e0b', color: '#fbbf24' },
   pillDanger: { borderColor: '#ef4444', color: '#f87171' },
+  verifiedLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginLeft: 'auto',
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#fff',
+    cursor: 'pointer',
+  },
   tabsRow: {
     display: 'flex',
     gap: '4px',
