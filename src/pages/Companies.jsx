@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import {
-  collection, query, onSnapshot, doc, getDoc, setDoc, updateDoc,
+  collection, query, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc,
 } from 'firebase/firestore';
 import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, auth, storage } from '../firebase';
-import { Building2, FileText, Check, X, FilePlus } from 'lucide-react';
+import { Building2, FileText, Check, X, FilePlus, Ban, RotateCcw, Trash2 } from 'lucide-react';
 
 const TABS = [
   { key: 'open', label: 'Pendentes', statuses: ['pending'] },
   { key: 'needs_docs', label: 'Aguardando documento', statuses: ['needs_docs'] },
   { key: 'approved', label: 'Aprovados', statuses: ['approved'] },
   { key: 'rejected', label: 'Recusados', statuses: ['rejected'] },
+  { key: 'companies', label: 'Empresas ativas', statuses: [] },
 ];
 const DOC_LABELS = {
   cnpjCard: 'Cartão CNPJ',
@@ -33,6 +34,7 @@ const fmtPhone = (v) => {
 
 export default function Companies() {
   const [requests, setRequests] = useState(null);
+  const [companies, setCompanies] = useState(null);
   const [tab, setTab] = useState('open');
   const [names, setNames] = useState({});
   const [busy, setBusy] = useState(null);
@@ -45,6 +47,12 @@ export default function Companies() {
       setRequests(list);
     }, (err) => { console.error('[Companies]', err); setRequests([]); });
   }, []);
+
+  useEffect(() => onSnapshot(collection(db, 'companies'), (snap) => {
+    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    list.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+    setCompanies(list);
+  }, (err) => { console.error('[Companies] empresas', err); setCompanies([]); }), []);
 
   // Nome de quem pediu (busca uma vez por usuário)
   useEffect(() => {
@@ -60,6 +68,7 @@ export default function Companies() {
 
   const counts = {};
   TABS.forEach((t) => { counts[t.key] = (requests || []).filter((r) => t.statuses.includes(r.status)).length; });
+  counts.companies = (companies || []).length;
   const current = TABS.find((t) => t.key === tab);
   const shown = (requests || []).filter((r) => current.statuses.includes(r.status));
 
@@ -92,6 +101,9 @@ export default function Companies() {
         phone: r.phone,
         site: r.site || '',
         photoURL: '',
+        bannerURL: '',
+        bio: '',
+        status: 'active',
         ownerUid: r.uid,
         memberUids: [r.uid],
         members: { [r.uid]: 'owner' },
@@ -136,6 +148,42 @@ export default function Companies() {
     finally { setBusy(null); }
   };
 
+  const suspend = async (c) => {
+    const reason = window.prompt(`Suspender "${c.tradeName || c.legalName}"?\nMotivo (a equipe da empresa verá essa mensagem):`);
+    if (reason === null) return;
+    setBusy(c.id);
+    try {
+      await updateDoc(doc(db, 'companies', c.id), {
+        status: 'suspended', suspendedReason: reason.trim(),
+        suspendedAt: new Date().toISOString(), suspendedBy: auth.currentUser?.uid || '',
+      });
+    } catch (e) { alert('Erro ao suspender: ' + (e?.code || e?.message)); }
+    finally { setBusy(null); }
+  };
+
+  const reactivate = async (c) => {
+    if (!window.confirm(`Reativar "${c.tradeName || c.legalName}"?`)) return;
+    setBusy(c.id);
+    try {
+      await updateDoc(doc(db, 'companies', c.id), { status: 'active', suspendedReason: '' });
+    } catch (e) { alert('Erro ao reativar: ' + (e?.code || e?.message)); }
+    finally { setBusy(null); }
+  };
+
+  const removeCompany = async (c) => {
+    const typed = window.prompt(`Excluir "${c.tradeName || c.legalName}" é permanente.\nPara confirmar, digite EXCLUIR:`);
+    if (typed !== 'EXCLUIR') return;
+    setBusy(c.id);
+    try {
+      for (const url of [c.photoURL, c.bannerURL]) {
+        if (!url) continue;
+        try { await deleteObject(ref(storage, url)); } catch { /* já não existe */ }
+      }
+      await deleteDoc(doc(db, 'companies', c.id));
+    } catch (e) { alert('Erro ao excluir: ' + (e?.code || e?.message)); }
+    finally { setBusy(null); }
+  };
+
   return (
     <div>
       <h1 style={s.title}>Empresas</h1>
@@ -154,10 +202,48 @@ export default function Companies() {
         ))}
       </div>
 
-      {requests === null && <p style={s.muted}>Carregando…</p>}
-      {requests && shown.length === 0 && <p style={s.muted}>Nenhum pedido nessa aba.</p>}
+      {tab === 'companies' && companies === null && <p style={s.muted}>Carregando…</p>}
+      {tab === 'companies' && companies && companies.length === 0 && <p style={s.muted}>Nenhuma empresa ativa ainda.</p>}
+      {tab === 'companies' && (companies || []).map((c) => (
+        <div key={c.id} style={s.card}>
+          <div style={s.head}>
+            <div style={s.icon}><Building2 size={20} /></div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={s.name}>
+                {c.tradeName || c.legalName}
+                {c.status === 'suspended' && <span style={s.suspendedTag}>Suspensa</span>}
+              </div>
+              <div style={s.muted}>{c.legalName} · CNPJ {fmtCnpj(c.cnpj)}</div>
+            </div>
+            <div style={s.muted}>{c.createdAt ? new Date(c.createdAt).toLocaleString('pt-BR') : ''}</div>
+          </div>
+          <div style={s.grid}>
+            <Info label="E-mail" value={c.email} />
+            <Info label="Telefone" value={fmtPhone(c.phone)} />
+            <Info label="Membros" value={String((c.memberUids || []).length)} />
+          </div>
+          {c.status === 'suspended' && c.suspendedReason && <div style={s.reason}>Motivo da suspensão: {c.suspendedReason}</div>}
+          <div style={s.actions}>
+            {c.status === 'suspended' ? (
+              <button type="button" disabled={busy === c.id} style={s.approve} onClick={() => reactivate(c)}>
+                <RotateCcw size={16} /> Reativar
+              </button>
+            ) : (
+              <button type="button" disabled={busy === c.id} style={s.ask} onClick={() => suspend(c)}>
+                <Ban size={16} /> Suspender
+              </button>
+            )}
+            <button type="button" disabled={busy === c.id} style={s.reject} onClick={() => removeCompany(c)}>
+              <Trash2 size={16} /> Excluir
+            </button>
+          </div>
+        </div>
+      ))}
 
-      {shown.map((r) => (
+      {tab !== 'companies' && requests === null && <p style={s.muted}>Carregando…</p>}
+      {tab !== 'companies' && requests && shown.length === 0 && <p style={s.muted}>Nenhum pedido nessa aba.</p>}
+
+      {tab !== 'companies' && shown.map((r) => (
         <div key={r.id} style={s.card}>
           <div style={s.head}>
             <div style={s.icon}><Building2 size={20} /></div>
@@ -245,6 +331,10 @@ const s = {
   docBtn: {
     display: 'flex', alignItems: 'center', gap: 6, background: '#f0f2f5', border: '1px solid #ddd',
     borderRadius: 8, padding: '7px 12px', fontSize: 13, cursor: 'pointer', color: '#111',
+  },
+  suspendedTag: {
+    marginLeft: 10, background: '#fdecea', color: '#d93025', borderRadius: 8, padding: '2px 8px',
+    fontSize: 11, fontWeight: 700,
   },
   reason: { marginTop: 14, fontSize: 13, color: '#555', background: '#f7f7f8', borderRadius: 8, padding: '8px 12px' },
   actions: { display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' },
