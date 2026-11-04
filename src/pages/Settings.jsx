@@ -98,7 +98,7 @@ export default function Settings() {
       <div style={styles.sections}>
         {/* Comissão */}
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>💰 Financeiro</h2>
+          <h2 style={styles.sectionTitle}>Financeiro</h2>
           
           <div style={styles.settingGroup}>
             <label style={styles.label}>
@@ -144,7 +144,7 @@ export default function Settings() {
 
         {/* Categorias */}
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>📂 Categorias de Lives</h2>
+          <h2 style={styles.sectionTitle}>Categorias de Lives</h2>
           
           <div style={styles.categoriesAddContainer}>
             <input
@@ -181,7 +181,7 @@ export default function Settings() {
 
         {/* Informações da Plataforma */}
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>ℹ️ Informações da Plataforma</h2>
+          <h2 style={styles.sectionTitle}>Informações da Plataforma</h2>
           
           <div style={styles.settingGroup}>
             <label style={styles.label}>
@@ -203,7 +203,7 @@ export default function Settings() {
           </div>
 
           <div style={styles.infoCard}>
-            <h3 style={styles.infoCardTitle}>🔧 Informações do Sistema</h3>
+            <h3 style={styles.infoCardTitle}>Informações do Sistema</h3>
             <div style={styles.infoGrid}>
               <div style={styles.infoItem}>
                 <p style={styles.infoLabel}>Ambiente</p>
@@ -227,7 +227,7 @@ export default function Settings() {
 
         {/* Regras da Plataforma */}
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>📋 Regras e Políticas</h2>
+          <h2 style={styles.sectionTitle}>Regras e Políticas</h2>
           
           <div style={styles.rulesCard}>
             <h3 style={styles.rulesTitle}>Diretrizes da Comunidade</h3>
@@ -252,7 +252,7 @@ export default function Settings() {
 
         {/* Zona de Perigo */}
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>⚠️ Zona de Perigo</h2>
+          <h2 style={styles.sectionTitle}>Zona de Perigo</h2>
           
           <div style={styles.dangerCard}>
             <h3 style={styles.dangerTitle}>Ações Irreversíveis</h3>
@@ -282,7 +282,7 @@ const styles = {
   loading: {
     textAlign: 'center',
     padding: '40px',
-    color: '#999',
+    color: '#8a8a95',
   },
   header: {
     display: 'flex',
@@ -291,28 +291,29 @@ const styles = {
     marginBottom: '40px',
   },
   title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
+    fontSize: '28px',
+    fontWeight: '800',
     color: '#fff',
     marginBottom: '8px',
   },
   subtitle: {
-    fontSize: '16px',
-    color: '#999',
+    fontSize: '14px',
+    color: '#8a8a95',
   },
   saveButton: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
     padding: '12px 24px',
-    borderRadius: '8px',
-    border: 'none',
-    backgroundColor: '#fff',
-    color: '#000',
+    borderRadius: '10px',
+    border: '1px solid #52fa35',
+    backgroundColor: 'rgba(82,250,53,0.05)',
+    color: '#52fa35',
     fontSize: '14px',
-    fontWeight: 'bold',
+    fontWeight: '700',
     cursor: 'pointer',
-    transition: 'opacity 0.2s',
+    whiteSpace: 'nowrap',
+    fontFamily: 'inherit',
   },
   sections: {
     display: 'flex',
@@ -320,9 +321,9 @@ const styles = {
     gap: '24px',
   },
   section: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
     padding: '24px',
   },
   sectionTitle: {
@@ -345,15 +346,17 @@ const styles = {
   },
   labelHint: {
     fontSize: '12px',
-    color: '#666',
+    color: '#8a8a95',
     fontWeight: 'normal',
   },
   input: {
     width: '100%',
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
     padding: '12px 16px',
     borderRadius: '8px',
-    border: '1px solid #333',
-    backgroundColor: '#0a0a0a',
+    border: '1px solid #1f1f27',
+    backgroundColor: '#08080c',
     color: '#fff',
     fontSize: '14px',
     outline: 'none',
@@ -368,14 +371,15 @@ const styles = {
     alignItems: 'center',
     gap: '8px',
     padding: '12px 20px',
-    borderRadius: '8px',
-    border: 'none',
-    backgroundColor: '#fff',
-    color: '#000',
+    borderRadius: '10px',
+    border: '1px solid #52fa35',
+    backgroundColor: 'rgba(82,250,53,0.05)',
+    color: '#52fa35',
     fontSize: '14px',
-    fontWeight: 'bold',
+    fontWeight: '700',
     cursor: 'pointer',
     whiteSpace: 'nowrap',
+    fontFamily: 'inherit',
   },
   categoriesList: {
     display: 'grid',
@@ -387,9 +391,9 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '12px 16px',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#08080c',
     borderRadius: '8px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
   },
   categoryName: {
     fontSize: '14px',
@@ -406,10 +410,10 @@ const styles = {
     alignItems: 'center',
   },
   infoCard: {
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#08080c',
     borderRadius: '8px',
     padding: '20px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
   },
   infoCardTitle: {
     fontSize: '16px',
@@ -429,7 +433,7 @@ const styles = {
   },
   infoLabel: {
     fontSize: '12px',
-    color: '#666',
+    color: '#8a8a95',
   },
   infoValue: {
     fontSize: '14px',
@@ -437,10 +441,10 @@ const styles = {
     color: '#fff',
   },
   rulesCard: {
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#08080c',
     borderRadius: '8px',
     padding: '20px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
     marginBottom: '16px',
   },
   rulesTitle: {
@@ -456,7 +460,7 @@ const styles = {
   },
   ruleItem: {
     fontSize: '14px',
-    color: '#999',
+    color: '#8a8a95',
     marginBottom: '8px',
     paddingLeft: '20px',
     position: 'relative',
@@ -481,7 +485,7 @@ const styles = {
   },
   dangerText: {
     fontSize: '14px',
-    color: '#999',
+    color: '#8a8a95',
     marginBottom: '16px',
   },
   dangerActions: {

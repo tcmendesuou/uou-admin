@@ -171,7 +171,7 @@ export default function CreatorLevels() {
   return (
     <div className="creator-levels-container">
       <div className="header">
-        <h1>📊 Configuração de Níveis de Criadores</h1>
+        <h1>Configuração de Níveis de Criadores</h1>
         <p className="subtitle">
           200 níveis • Criador precisa atingir <strong>3 de 4 critérios</strong> para subir de nível
         </p>
@@ -183,13 +183,13 @@ export default function CreatorLevels() {
           disabled={saving}
           className="btn-save"
         >
-          {saving ? '💾 Salvando...' : '💾 Salvar Todos os Níveis'}
+          {saving ? 'Salvando...' : 'Salvar todos os níveis'}
         </button>
         <button 
           onClick={resetToDefault}
           className="btn-reset"
         >
-          🔄 Resetar para Padrão
+          Resetar para padrão
         </button>
       </div>
 
@@ -208,7 +208,7 @@ export default function CreatorLevels() {
         </div>
         <div className="info-card">
           <span className="badge gold">151-200</span>
-          <span>Profissional → LENDÁRIO 🔥</span>
+          <span>Profissional → Lendário</span>
         </div>
       </div>
 
@@ -236,7 +236,7 @@ export default function CreatorLevels() {
               >
                 <td className="level-number">
                   {level.level}
-                  {level.level === 200 && ' 👑'}
+                  
                 </td>
                 <td>
                   <input
@@ -282,7 +282,7 @@ export default function CreatorLevels() {
           disabled={saving}
           className="btn-save-large"
         >
-          {saving ? '💾 Salvando...' : '💾 Salvar Configurações'}
+          {saving ? 'Salvando...' : 'Salvar configurações'}
         </button>
       </div>
     </div>

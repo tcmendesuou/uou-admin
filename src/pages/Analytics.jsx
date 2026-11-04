@@ -118,7 +118,7 @@ export default function Analytics() {
       <div style={styles.statsGrid}>
         <div style={styles.statCard}>
           <div style={styles.statIcon}>
-            <Smartphone size={24} color="#4CAF50" />
+            <Smartphone size={24} color="#cfcfd6" />
           </div>
           <div style={styles.statContent}>
             <p style={styles.statLabel}>Aberturas do app ({rangeDays}d)</p>
@@ -128,7 +128,7 @@ export default function Analytics() {
 
         <div style={styles.statCard}>
           <div style={styles.statIcon}>
-            <Clock size={24} color="#FFD700" />
+            <Clock size={24} color="#cfcfd6" />
           </div>
           <div style={styles.statContent}>
             <p style={styles.statLabel}>Tempo médio por sessão</p>
@@ -138,7 +138,7 @@ export default function Analytics() {
 
         <div style={styles.statCard}>
           <div style={styles.statIcon}>
-            <Users size={24} color="#6366f1" />
+            <Users size={24} color="#cfcfd6" />
           </div>
           <div style={styles.statContent}>
             <p style={styles.statLabel}>Usuários ativos hoje</p>
@@ -174,7 +174,7 @@ export default function Analytics() {
             <div key={s.screenName} style={styles.barRow}>
               <span style={{ ...styles.barLabel, width: '160px' }}>{s.screenName}</span>
               <div style={styles.barTrack}>
-                <div style={{ ...styles.barFill, width: `${(s.count / maxScreen) * 100}%`, backgroundColor: '#6366f1' }} />
+                <div style={{ ...styles.barFill, width: `${(s.count / maxScreen) * 100}%`, backgroundColor: '#8a8a95' }} />
               </div>
               <span style={styles.barValue}>{s.count}</span>
             </div>
@@ -193,17 +193,17 @@ const styles = {
   loading: {
     textAlign: 'center',
     padding: '40px',
-    color: '#999',
+    color: '#8a8a95',
   },
   title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
+    fontSize: '28px',
+    fontWeight: '800',
     color: '#fff',
     marginBottom: '8px',
   },
   subtitle: {
-    fontSize: '16px',
-    color: '#999',
+    fontSize: '14px',
+    color: '#8a8a95',
     marginBottom: '24px',
   },
   rangeButtons: {
@@ -214,18 +214,19 @@ const styles = {
   filterButton: {
     padding: '12px 20px',
     borderRadius: '8px',
-    border: '1px solid #333',
-    backgroundColor: '#1a1a1a',
-    color: '#999',
+    border: '1px solid #1f1f27',
+    backgroundColor: '#0d0d0d',
+    color: '#8a8a95',
     fontSize: '14px',
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s',
   },
   filterButtonActive: {
-    backgroundColor: '#fff',
-    color: '#000',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    color: '#fff',
     borderColor: '#fff',
+    fontWeight: '700',
   },
   statsGrid: {
     display: 'grid',
@@ -234,10 +235,10 @@ const styles = {
     marginBottom: '32px',
   },
   statCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
     display: 'flex',
     gap: '16px',
   },
@@ -245,7 +246,7 @@ const styles = {
     width: '48px',
     height: '48px',
     borderRadius: '12px',
-    backgroundColor: '#2a2a2a',
+    backgroundColor: '#16161c',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -255,7 +256,7 @@ const styles = {
   },
   statLabel: {
     fontSize: '14px',
-    color: '#999',
+    color: '#8a8a95',
     marginBottom: '8px',
   },
   statValue: {
@@ -264,10 +265,10 @@ const styles = {
     color: '#fff',
   },
   card: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
     marginBottom: '24px',
   },
   cardTitleRow: {
@@ -290,20 +291,20 @@ const styles = {
   },
   barLabel: {
     fontSize: '13px',
-    color: '#999',
+    color: '#8a8a95',
     width: '60px',
     flexShrink: 0,
   },
   barTrack: {
     flex: 1,
     height: '10px',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#08080c',
     borderRadius: '6px',
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#e8e8ee',
     borderRadius: '6px',
   },
   barValue: {
@@ -314,7 +315,7 @@ const styles = {
     flexShrink: 0,
   },
   emptyText: {
-    color: '#666',
+    color: '#8a8a95',
     fontSize: '14px',
   },
 };

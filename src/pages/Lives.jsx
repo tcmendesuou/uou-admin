@@ -318,7 +318,7 @@ export default function Lives() {
               {/* ✅ Relatório financeiro — só aparece em lives premiadas */}
               {selectedLive.isPremium && (
                 <div style={styles.reportBox}>
-                  <h4 style={styles.reportTitle}>💰 Relatório Financeiro da Live</h4>
+                  <h4 style={styles.reportTitle}>Relatório Financeiro da Live</h4>
 
                   <div style={styles.reportRow}>
                     <span style={styles.reportLabel}>Modo de prêmio</span>
@@ -331,7 +331,7 @@ export default function Lives() {
 
                   <div style={styles.reportRow}>
                     <span style={styles.reportLabel}>Carteira da Live (espectadores)</span>
-                    <span style={{ ...styles.reportValue, color: '#22c55e', fontWeight: '700' }}>
+                    <span style={{ ...styles.reportValue, color: '#fff', fontWeight: '700' }}>
                       R$ {(selectedLive.potBalance || 0).toFixed(2)}
                     </span>
                   </div>
@@ -365,12 +365,12 @@ export default function Lives() {
                   {selectedLive.prizeDrawnAt ? (
                     <>
                       <div style={styles.reportRow}>
-                        <span style={styles.reportLabel}>🏆 Vencedor do sorteio</span>
+                        <span style={styles.reportLabel}>Vencedor do sorteio</span>
                         <span style={{ ...styles.reportValue, fontWeight: '700' }}>{selectedLive.winnerName || '—'}</span>
                       </div>
                       <div style={styles.reportRow}>
                         <span style={styles.reportLabel}>Prêmio pago</span>
-                        <span style={{ ...styles.reportValue, color: '#22c55e', fontWeight: '700' }}>
+                        <span style={{ ...styles.reportValue, color: '#fff', fontWeight: '700' }}>
                           R$ {(selectedLive.prizeValuePaid || 0).toFixed(2)}
                         </span>
                       </div>
@@ -440,7 +440,7 @@ const styles = {
   loading: {
     textAlign: 'center',
     padding: '40px',
-    color: '#666',
+    color: '#8a8a95',
   },
   header: {
     display: 'flex',
@@ -449,14 +449,14 @@ const styles = {
     marginBottom: '30px',
   },
   title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
-    color: '#111',
+    fontSize: '28px',
+    fontWeight: '800',
+    color: '#f0f0f0',
     marginBottom: '8px',
   },
   subtitle: {
-    fontSize: '16px',
-    color: '#666',
+    fontSize: '14px',
+    color: '#8a8a95',
   },
   filters: {
     display: 'flex',
@@ -469,9 +469,9 @@ const styles = {
     alignItems: 'center',
     gap: '12px',
     padding: '12px 16px',
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderRadius: '8px',
-    border: '1px solid #e0e0e0',
+    border: '1px solid #1f1f27',
     flex: 1,
     minWidth: '300px',
     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
@@ -480,7 +480,7 @@ const styles = {
     flex: 1,
     border: 'none',
     backgroundColor: 'transparent',
-    color: '#111',
+    color: '#f0f0f0',
     fontSize: '14px',
     outline: 'none',
   },
@@ -491,34 +491,35 @@ const styles = {
   filterButton: {
     padding: '12px 20px',
     borderRadius: '8px',
-    border: '1px solid #e0e0e0',
-    backgroundColor: '#fff',
-    color: '#666',
+    border: '1px solid #1f1f27',
+    backgroundColor: '#0d0d0d',
+    color: '#8a8a95',
     fontSize: '14px',
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s',
   },
   filterButtonActive: {
-    backgroundColor: '#111',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     color: '#fff',
-    borderColor: '#111',
+    borderColor: '#fff',
+    fontWeight: '700',
   },
   table: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
-    border: '1px solid #e0e0e0',
+    border: '1px solid #1f1f27',
     overflow: 'hidden',
     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
   },
   tableHeader: {
     display: 'flex',
     padding: '16px 20px',
-    backgroundColor: '#f9f9f9',
-    borderBottom: '1px solid #e0e0e0',
+    backgroundColor: '#08080c',
+    borderBottom: '1px solid #1f1f27',
     fontWeight: 'bold',
     fontSize: '12px',
-    color: '#666',
+    color: '#8a8a95',
     textTransform: 'uppercase',
   },
   tableBody: {
@@ -529,7 +530,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     padding: '16px 20px',
-    borderBottom: '1px solid #f0f0f0',
+    borderBottom: '1px solid #1a1a1a',
   },
   tableCell: {
     flex: 1,
@@ -542,21 +543,21 @@ const styles = {
     height: '40px',
     borderRadius: '4px',
     objectFit: 'cover',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#16161c',
   },
   liveTitle: {
     fontSize: '14px',
     fontWeight: '500',
-    color: '#111',
+    color: '#f0f0f0',
     marginBottom: '4px',
   },
   liveDate: {
     fontSize: '12px',
-    color: '#666',
+    color: '#8a8a95',
   },
   cellValue: {
     fontSize: '14px',
-    color: '#111',
+    color: '#f0f0f0',
   },
   statusBadge: {
     padding: '4px 12px',
@@ -567,15 +568,15 @@ const styles = {
   },
   statusLive: {
     backgroundColor: 'rgba(255, 0, 0, 0.1)',
-    color: '#c62828',
+    color: '#ff6b6b',
   },
   statusScheduled: {
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    color: '#b45309',
+    color: '#fbbf24',
   },
   statusEnded: {
     backgroundColor: 'rgba(100, 100, 100, 0.1)',
-    color: '#555',
+    color: '#a0a0aa',
   },
   actions: {
     gap: '8px',
@@ -583,9 +584,9 @@ const styles = {
   actionButton: {
     padding: '8px',
     borderRadius: '6px',
-    border: '1px solid #e0e0e0',
+    border: '1px solid #1f1f27',
     backgroundColor: 'transparent',
-    color: '#666',
+    color: '#8a8a95',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -604,16 +605,16 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
-    border: '1px solid #e0e0e0',
+    border: '1px solid #1f1f27',
     width: '90%',
     maxWidth: '600px',
     maxHeight: '80vh',
@@ -625,17 +626,17 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '20px',
-    borderBottom: '1px solid #e0e0e0',
+    borderBottom: '1px solid #1f1f27',
   },
   modalTitle: {
     fontSize: '20px',
     fontWeight: 'bold',
-    color: '#111',
+    color: '#f0f0f0',
   },
   closeButton: {
     background: 'none',
     border: 'none',
-    color: '#666',
+    color: '#8a8a95',
     fontSize: '32px',
     cursor: 'pointer',
     lineHeight: '20px',
@@ -652,12 +653,12 @@ const styles = {
   modalLiveTitle: {
     fontSize: '24px',
     fontWeight: 'bold',
-    color: '#111',
+    color: '#f0f0f0',
     marginBottom: '12px',
   },
   modalDescription: {
     fontSize: '14px',
-    color: '#666',
+    color: '#8a8a95',
     lineHeight: '1.6',
     marginBottom: '24px',
   },
@@ -672,12 +673,12 @@ const styles = {
   },
   modalLabel: {
     fontSize: '12px',
-    color: '#666',
+    color: '#8a8a95',
     marginBottom: '4px',
   },
   modalValue: {
     fontSize: '14px',
-    color: '#111',
+    color: '#f0f0f0',
     fontWeight: '500',
   },
   modalActions: {
@@ -685,7 +686,7 @@ const styles = {
     gap: '12px',
     marginTop: '24px',
     paddingTop: '20px',
-    borderTop: '1px solid #e0e0e0',
+    borderTop: '1px solid #1f1f27',
   },
   modalButton: {
     flex: 1,
@@ -697,16 +698,18 @@ const styles = {
     cursor: 'pointer',
   },
   modalButtonWarning: {
-    backgroundColor: '#f59e0b',
-    color: '#fff',
+    backgroundColor: 'rgba(245,158,11,0.1)',
+    color: '#f59e0b',
+    border: '1px solid #f59e0b',
   },
   modalButtonDanger: {
-    backgroundColor: '#ef4444',
-    color: '#fff',
+    backgroundColor: 'rgba(239,68,68,0.1)',
+    color: '#ef4444',
+    border: '1px solid #ef4444',
   },
   reportBox: {
-    backgroundColor: '#f9fafb',
-    border: '1px solid #e0e0e0',
+    backgroundColor: '#08080c',
+    border: '1px solid #1f1f27',
     borderRadius: '12px',
     padding: '16px',
     marginTop: '16px',
@@ -715,7 +718,7 @@ const styles = {
   reportTitle: {
     fontSize: '14px',
     fontWeight: '700',
-    color: '#111',
+    color: '#f0f0f0',
     marginBottom: '12px',
     marginTop: 0,
   },
@@ -727,15 +730,15 @@ const styles = {
     fontSize: '13px',
   },
   reportLabel: {
-    color: '#666',
+    color: '#8a8a95',
   },
   reportValue: {
-    color: '#111',
+    color: '#f0f0f0',
     fontWeight: '500',
     textAlign: 'right',
   },
   reportDivider: {
-    borderTop: '1px solid #e5e7eb',
+    borderTop: '1px solid #1f1f27',
     margin: '8px 0',
   },
 };

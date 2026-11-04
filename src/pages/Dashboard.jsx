@@ -200,8 +200,8 @@ export default function Dashboard() {
         </div>
 
         <div style={styles.legendRow}>
-          <span style={styles.legendItem}><span style={{ ...styles.legendDot, backgroundColor: '#00E676' }} /> Total de usuários</span>
-          <span style={styles.legendItem}><span style={{ ...styles.legendDot, backgroundColor: '#ffd94d' }} /> Novos no mês</span>
+          <span style={styles.legendItem}><span style={{ ...styles.legendDot, backgroundColor: '#f0f0f0' }} /> Total de usuários</span>
+          <span style={styles.legendItem}><span style={{ ...styles.legendDot, backgroundColor: '#52fa35' }} /> Novos no mês</span>
           <span style={styles.legendItem}><span style={{ ...styles.legendDot, backgroundColor: '#ff6b6b' }} /> Excluídos / inativos 3+ meses</span>
         </div>
 
@@ -210,15 +210,15 @@ export default function Dashboard() {
           <div style={{ width: Math.max(chartData.length * PX_PER_MONTH, VISIBLE_MONTHS * PX_PER_MONTH), height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f27" />
                 <XAxis dataKey="month" stroke="#999" fontSize={12} />
                 <YAxis stroke="#999" fontSize={12} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px' }}
+                  contentStyle={{ backgroundColor: '#0d0d0d', border: '1px solid #1f1f27', borderRadius: '8px' }}
                   labelStyle={{ color: '#fff' }}
                 />
-                <Line type="monotone" dataKey="total" name="Total" stroke="#00E676" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="novos" name="Novos" stroke="#ffd94d" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="total" name="Total" stroke="#f0f0f0" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="novos" name="Novos" stroke="#52fa35" strokeWidth={2} dot={{ r: 3 }} />
                 <Line type="monotone" dataKey="inativosExcluidos" name="Excluídos/Inativos" stroke="#ff6b6b" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
@@ -310,24 +310,24 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     height: '400px',
-    color: '#999',
+    color: '#8a8a95',
   },
   title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
+    fontSize: '28px',
+    fontWeight: '800',
     color: '#fff',
     marginBottom: '8px',
   },
   subtitle: {
-    fontSize: '16px',
-    color: '#999',
+    fontSize: '14px',
+    color: '#8a8a95',
     marginBottom: '40px',
   },
   blockCard: {
-    backgroundColor: '#262626',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
     marginBottom: '40px',
   },
   blockTitle: {
@@ -344,7 +344,7 @@ const styles = {
   statValueBig: {
     fontSize: '36px',
     fontWeight: 'bold',
-    color: '#00E676',
+    color: '#fff',
   },
   legendRow: {
     display: 'flex',
@@ -357,7 +357,7 @@ const styles = {
     alignItems: 'center',
     gap: '6px',
     fontSize: '13px',
-    color: '#ccc',
+    color: '#bbb',
   },
   legendDot: {
     width: '10px',
@@ -377,20 +377,20 @@ const styles = {
     marginBottom: '40px',
   },
   statCard: {
-    backgroundColor: '#262626',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
   },
   statLabel: {
     fontSize: '14px',
-    color: '#999',
+    color: '#8a8a95',
     marginBottom: '8px',
   },
   statValue: {
     fontSize: '28px',
     fontWeight: 'bold',
-    color: '#00E676',
+    color: '#fff',
   },
   tablesGrid: {
     display: 'grid',
@@ -398,10 +398,10 @@ const styles = {
     gap: '20px',
   },
   tableCard: {
-    backgroundColor: '#262626',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
   },
   tableTitle: {
     fontSize: '18px',
@@ -419,9 +419,9 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '12px',
-    backgroundColor: '#333',
+    backgroundColor: '#16161c',
     borderRadius: '8px',
-    border: '1px solid #3a3a3a',
+    border: '1px solid #26262e',
   },
   tableCell: {
     flex: 1,
@@ -434,11 +434,11 @@ const styles = {
   },
   tableCellSubtitle: {
     fontSize: '12px',
-    color: '#999',
+    color: '#8a8a95',
   },
   tableCellValue: {
     fontSize: '14px',
-    color: '#999',
+    color: '#8a8a95',
     textAlign: 'right',
   },
   statusBadge: {
@@ -458,6 +458,6 @@ const styles = {
   },
   statusEnded: {
     backgroundColor: 'rgba(153, 153, 153, 0.2)',
-    color: '#999',
+    color: '#8a8a95',
   },
 };

@@ -2,15 +2,16 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Video, 
+import logoUou from '../assets/logo-uou.png';
+import {
+  LayoutDashboard,
+  Users,
+  Video,
   DollarSign,
   TrendingUp,
   Building2,
-  Settings, 
-  LogOut 
+  Settings,
+  LogOut,
 } from 'lucide-react';
 
 export default function Layout() {
@@ -35,10 +36,22 @@ export default function Layout() {
 
   return (
     <div style={styles.container}>
+      {/* Visual global do painel (fundo escuro, barras de rolagem, campos) */}
+      <style>{`
+        html, body { background: #010208; margin: 0; color-scheme: dark; }
+        * { scrollbar-width: thin; scrollbar-color: #26262e transparent; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #26262e; border-radius: 8px; }
+        input, textarea, select, button { font-family: inherit; }
+        input:focus, textarea:focus, select:focus { border-color: #555 !important; outline: none; }
+        input::placeholder, textarea::placeholder { color: #55555f; }
+        .uou-nav:hover { background: rgba(255,255,255,0.04); color: #fff; }
+      `}</style>
+
       {/* Sidebar */}
       <aside style={styles.sidebar}>
         <div style={styles.logo}>
-          <h1 style={styles.logoText}>UOU</h1>
+          <img src={logoUou} alt="UOU" style={styles.logoImg} />
           <p style={styles.logoSubtext}>Admin</p>
         </div>
 
@@ -48,19 +61,20 @@ export default function Layout() {
               key={item.path}
               to={item.path}
               end={item.path === '/'}
+              className="uou-nav"
               style={({ isActive }) => ({
                 ...styles.navItem,
-                ...(isActive ? styles.navItemActive : {})
+                ...(isActive ? styles.navItemActive : {}),
               })}
             >
-              <item.icon size={20} />
+              <item.icon size={19} strokeWidth={1.8} />
               <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>
 
         <button style={styles.logoutButton} onClick={handleLogout}>
-          <LogOut size={20} />
+          <LogOut size={18} strokeWidth={1.8} />
           <span>Sair</span>
         </button>
       </aside>
@@ -77,75 +91,80 @@ const styles = {
   container: {
     display: 'flex',
     height: '100vh',
-    backgroundColor: '#f0f2f5',
+    backgroundColor: '#010208',
+    color: '#f0f0f0',
+    fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif",
   },
   sidebar: {
-    width: '260px',
-    backgroundColor: '#000',
-    borderRight: '1px solid #222',
+    width: '250px',
+    flexShrink: 0,
+    backgroundColor: '#05050a',
+    borderRight: '1px solid #15151c',
     display: 'flex',
     flexDirection: 'column',
-    padding: '20px',
+    padding: '24px 16px 20px',
   },
   logo: {
-    marginBottom: '40px',
-    paddingBottom: '20px',
-    borderBottom: '1px solid #222',
+    marginBottom: '28px',
+    padding: '0 8px 22px',
+    borderBottom: '1px solid #15151c',
   },
-  logoText: {
-    fontSize: '28px',
-    fontWeight: '900',
-    color: '#fff',
-    marginBottom: '4px',
-    letterSpacing: '2px',
+  logoImg: {
+    height: '34px',
+    width: 'auto',
+    display: 'block',
+    marginBottom: '8px',
   },
   logoSubtext: {
-    fontSize: '11px',
-    color: '#666',
+    margin: 0,
+    fontSize: '10px',
+    color: '#6b6b76',
     textTransform: 'uppercase',
-    letterSpacing: '2px',
+    letterSpacing: '3px',
   },
   nav: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    gap: '4px',
+    gap: '2px',
   },
   navItem: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    padding: '12px 16px',
-    borderRadius: '8px',
-    color: '#aaa',
+    padding: '11px 14px',
+    borderRadius: '10px',
+    color: '#8a8a95',
     textDecoration: 'none',
     fontSize: '14px',
     fontWeight: '500',
-    transition: 'all 0.2s',
+    transition: 'background 0.15s, color 0.15s',
     cursor: 'pointer',
+    borderLeft: '2px solid transparent',
   },
   navItemActive: {
-    backgroundColor: '#fff',
-    color: '#000',
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    color: '#fff',
+    fontWeight: '700',
+    borderLeft: '2px solid #52fa35',
   },
   logoutButton: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    padding: '12px 16px',
-    borderRadius: '8px',
-    color: '#ff4444',
+    padding: '11px 14px',
+    borderRadius: '10px',
+    color: '#ff6b6b',
     backgroundColor: 'transparent',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
     fontSize: '14px',
     fontWeight: '500',
     cursor: 'pointer',
-    transition: 'all 0.2s',
   },
   main: {
     flex: 1,
     overflow: 'auto',
-    padding: '40px',
-    backgroundColor: '#f0f2f5',
+    padding: '40px 48px',
+    backgroundColor: '#010208',
   },
 };

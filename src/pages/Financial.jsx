@@ -259,12 +259,12 @@ export default function Financial() {
                 <div style={styles.calcRow}><span style={{ ...styles.calcLabel, color: '#ef4444' }}>- Imposto ({liveConfig.impostoPercent}%)</span><span style={{ ...styles.calcValue, color: '#ef4444' }}>- R$ {sim.imposto.toFixed(2)}</span></div>
                 <div style={styles.calcRow}><span style={{ ...styles.calcLabel, color: '#ef4444' }}>- Estrutura ({liveConfig.estruturaPercent}%)</span><span style={{ ...styles.calcValue, color: '#ef4444' }}>- R$ {sim.estrutura.toFixed(2)}</span></div>
                 <div style={styles.calcDivider} />
-                <div style={styles.calcRow}><span style={{ ...styles.calcLabel, fontWeight: '700', color: '#111' }}>Valor líquido</span><span style={{ ...styles.calcValue, fontWeight: '700', color: '#111' }}>R$ {sim.liquido.toFixed(2)}</span></div>
+                <div style={styles.calcRow}><span style={{ ...styles.calcLabel, fontWeight: '700', color: '#f0f0f0' }}>Valor líquido</span><span style={{ ...styles.calcValue, fontWeight: '700', color: '#f0f0f0' }}>R$ {sim.liquido.toFixed(2)}</span></div>
                 <div style={styles.calcDivider} />
                 <div style={styles.calcRow}><span style={{ ...styles.calcLabel, color: '#6366f1' }}>UOU ({liveConfig.uouPercent}%)</span><span style={{ ...styles.calcValue, color: '#6366f1' }}>R$ {sim.uou.toFixed(2)}</span></div>
                 <div style={{ ...styles.calcRow, backgroundColor: 'rgba(34,197,94,0.1)', borderRadius: '8px', padding: '10px 12px', marginTop: '4px' }}>
-                  <span style={{ ...styles.calcLabel, color: '#22c55e', fontWeight: '700' }}>Criador recebe</span>
-                  <span style={{ ...styles.calcValue, color: '#22c55e', fontWeight: '700', fontSize: '20px' }}>R$ {sim.criador.toFixed(2)}</span>
+                  <span style={{ ...styles.calcLabel, color: '#fff', fontWeight: '700' }}>Criador recebe</span>
+                  <span style={{ ...styles.calcValue, color: '#fff', fontWeight: '700', fontSize: '20px' }}>R$ {sim.criador.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -281,7 +281,7 @@ export default function Financial() {
       <div style={styles.statsGrid}>
         <div style={styles.statCard}>
           <div style={styles.statIcon}>
-            <DollarSign size={24} color="#4CAF50" />
+            <DollarSign size={24} color="#cfcfd6" />
           </div>
           <div style={styles.statContent}>
             <p style={styles.statLabel}>Receita Total</p>
@@ -293,7 +293,7 @@ export default function Financial() {
 
         <div style={styles.statCard}>
           <div style={styles.statIcon}>
-            <TrendingUp size={24} color="#FFD700" />
+            <TrendingUp size={24} color="#cfcfd6" />
           </div>
           <div style={styles.statContent}>
             <p style={styles.statLabel}>Comissão Plataforma (UOU)</p>
@@ -305,7 +305,7 @@ export default function Financial() {
 
         <div style={styles.statCard}>
           <div style={styles.statIcon}>
-            <DollarSign size={24} color="#FFD700" />
+            <DollarSign size={24} color="#cfcfd6" />
           </div>
           <div style={styles.statContent}>
             <p style={styles.statLabel}>Saques Pendentes</p>
@@ -317,7 +317,7 @@ export default function Financial() {
 
         <div style={styles.statCard}>
           <div style={styles.statIcon}>
-            <Check size={24} color="#4CAF50" />
+            <Check size={24} color="#cfcfd6" />
           </div>
           <div style={styles.statContent}>
             <p style={styles.statLabel}>Saques Concluídos</p>
@@ -474,17 +474,17 @@ const styles = {
   loading: {
     textAlign: 'center',
     padding: '40px',
-    color: '#999',
+    color: '#8a8a95',
   },
   title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
+    fontSize: '28px',
+    fontWeight: '800',
     color: '#fff',
     marginBottom: '8px',
   },
   subtitle: {
-    fontSize: '16px',
-    color: '#999',
+    fontSize: '14px',
+    color: '#8a8a95',
     marginBottom: '40px',
   },
   statsGrid: {
@@ -494,10 +494,10 @@ const styles = {
     marginBottom: '40px',
   },
   statCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
     display: 'flex',
     gap: '16px',
   },
@@ -505,7 +505,7 @@ const styles = {
     width: '48px',
     height: '48px',
     borderRadius: '12px',
-    backgroundColor: '#2a2a2a',
+    backgroundColor: '#16161c',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -515,7 +515,7 @@ const styles = {
   },
   statLabel: {
     fontSize: '14px',
-    color: '#999',
+    color: '#8a8a95',
     marginBottom: '8px',
   },
   statValue: {
@@ -534,9 +534,9 @@ const styles = {
     alignItems: 'center',
     gap: '12px',
     padding: '12px 16px',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#0d0d0d',
     borderRadius: '8px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
     flex: 1,
     minWidth: '300px',
   },
@@ -555,33 +555,34 @@ const styles = {
   filterButton: {
     padding: '12px 20px',
     borderRadius: '8px',
-    border: '1px solid #333',
-    backgroundColor: '#1a1a1a',
-    color: '#999',
+    border: '1px solid #1f1f27',
+    backgroundColor: '#0d0d0d',
+    color: '#8a8a95',
     fontSize: '14px',
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s',
   },
   filterButtonActive: {
-    backgroundColor: '#fff',
-    color: '#000',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    color: '#fff',
     borderColor: '#fff',
+    fontWeight: '700',
   },
   table: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
     overflow: 'hidden',
   },
   tableHeader: {
     display: 'flex',
     padding: '16px 20px',
-    backgroundColor: '#0a0a0a',
-    borderBottom: '1px solid #333',
+    backgroundColor: '#08080c',
+    borderBottom: '1px solid #1f1f27',
     fontWeight: 'bold',
     fontSize: '12px',
-    color: '#999',
+    color: '#8a8a95',
     textTransform: 'uppercase',
   },
   tableBody: {
@@ -592,7 +593,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     padding: '16px 20px',
-    borderBottom: '1px solid #333',
+    borderBottom: '1px solid #1f1f27',
   },
   tableCell: {
     flex: 1,
@@ -608,7 +609,7 @@ const styles = {
   },
   transactionSubtitle: {
     fontSize: '12px',
-    color: '#999',
+    color: '#8a8a95',
   },
   cellValue: {
     fontSize: '14px',
@@ -639,9 +640,9 @@ const styles = {
   actionButton: {
     padding: '8px',
     borderRadius: '6px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
     backgroundColor: 'transparent',
-    color: '#999',
+    color: '#8a8a95',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -659,7 +660,7 @@ const styles = {
     textAlign: 'center',
   },
   emptyText: {
-    color: '#666',
+    color: '#8a8a95',
     fontSize: '16px',
   },
 
@@ -667,13 +668,13 @@ const styles = {
     display: 'flex',
     gap: '4px',
     marginBottom: '32px',
-    borderBottom: '1px solid #e0e0e0',
+    borderBottom: '1px solid #1f1f27',
   },
   internalTab: {
     padding: '10px 20px',
     border: 'none',
     backgroundColor: 'transparent',
-    color: '#666',
+    color: '#8a8a95',
     fontSize: '14px',
     fontWeight: '600',
     cursor: 'pointer',
@@ -681,8 +682,8 @@ const styles = {
     marginBottom: '-1px',
   },
   internalTabActive: {
-    color: '#111',
-    borderBottom: '2px solid #111',
+    color: '#f0f0f0',
+    borderBottom: '2px solid #fff',
   },
   livesHeader: {
     display: 'flex',
@@ -691,14 +692,19 @@ const styles = {
     marginBottom: '32px',
   },
   saveBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
     padding: '10px 24px',
-    borderRadius: '8px',
-    border: 'none',
-    backgroundColor: '#111',
-    color: '#fff',
+    borderRadius: '10px',
+    border: '1px solid #52fa35',
+    backgroundColor: 'rgba(82,250,53,0.05)',
+    color: '#52fa35',
     fontSize: '14px',
-    fontWeight: '600',
+    fontWeight: '700',
     cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    fontFamily: 'inherit',
   },
   livesGrid: {
     display: 'grid',
@@ -706,23 +712,23 @@ const styles = {
     gap: '24px',
   },
   configCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
-    border: '1px solid #e0e0e0',
+    border: '1px solid #1f1f27',
     padding: '24px',
     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
   },
   simulatorCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderRadius: '12px',
-    border: '1px solid #e0e0e0',
+    border: '1px solid #1f1f27',
     padding: '24px',
     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
   },
   cardTitle: {
     fontSize: '18px',
     fontWeight: '700',
-    color: '#111',
+    color: '#f0f0f0',
     marginBottom: '24px',
   },
   configRow: {
@@ -734,27 +740,27 @@ const styles = {
     gap: '3px',
     fontSize: '14px',
     fontWeight: '500',
-    color: '#111',
+    color: '#f0f0f0',
     marginBottom: '8px',
   },
   configHint: {
     fontSize: '12px',
-    color: '#666',
+    color: '#8a8a95',
     fontWeight: 'normal',
   },
   configInput: {
     width: '100%',
     padding: '10px 14px',
     borderRadius: '8px',
-    border: '1px solid #e0e0e0',
-    backgroundColor: '#f9f9f9',
-    color: '#111',
+    border: '1px solid #1f1f27',
+    backgroundColor: '#08080c',
+    color: '#f0f0f0',
     fontSize: '14px',
     outline: 'none',
     boxSizing: 'border-box',
   },
   styleDivider: {
-    borderTop: '1px solid #e0e0e0',
+    borderTop: '1px solid #1f1f27',
     marginBottom: '20px',
   },
   splitBar: {
@@ -797,14 +803,14 @@ const styles = {
   },
   calcLabel: {
     fontSize: '14px',
-    color: '#666',
+    color: '#8a8a95',
   },
   calcValue: {
     fontSize: '14px',
-    color: '#111',
+    color: '#f0f0f0',
   },
   calcDivider: {
-    borderTop: '1px solid #e0e0e0',
+    borderTop: '1px solid #1f1f27',
     margin: '4px 0',
   },
 };

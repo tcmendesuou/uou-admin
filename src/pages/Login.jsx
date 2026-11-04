@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import logoUou from '../assets/logo-uou.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -35,9 +36,10 @@ export default function Login() {
 
   return (
     <div style={styles.container}>
+      <style>{`html,body{background:#010208;margin:0}input:focus{border-color:#555 !important}`}</style>
       <div style={styles.card}>
         <div style={styles.header}>
-          <h1 style={styles.logo}>UOU</h1>
+          <img src={logoUou} alt="UOU" style={styles.logoImg} />
           <p style={styles.subtitle}>Painel Administrativo</p>
         </div>
 
@@ -79,7 +81,7 @@ export default function Login() {
 
         <div style={styles.footer}>
           <p style={styles.footerText}>
-            ⚠️ Apenas administradores autorizados
+            Apenas administradores autorizados
           </p>
         </div>
       </div>
@@ -93,30 +95,33 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    backgroundColor: '#000',
+    backgroundColor: '#010208',
     padding: '20px',
+    fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif",
   },
   card: {
     width: '100%',
     maxWidth: '400px',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#0d0d0d',
     borderRadius: '16px',
     padding: '40px',
-    border: '1px solid #333',
+    border: '1px solid #1f1f27',
   },
   header: {
     textAlign: 'center',
-    marginBottom: '40px',
+    marginBottom: '36px',
   },
-  logo: {
-    fontSize: '32px',
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: '8px',
+  logoImg: {
+    height: '44px',
+    width: 'auto',
+    display: 'block',
+    margin: '0 auto 10px',
   },
   subtitle: {
-    fontSize: '14px',
-    color: '#999',
+    fontSize: '12px',
+    color: '#8a8a95',
+    textTransform: 'uppercase',
+    letterSpacing: '2px',
   },
   form: {
     display: 'flex',
@@ -129,49 +134,49 @@ const styles = {
     gap: '8px',
   },
   label: {
-    fontSize: '14px',
-    fontWeight: '500',
+    fontSize: '13px',
+    fontWeight: '600',
     color: '#fff',
   },
   input: {
     padding: '12px 16px',
-    borderRadius: '8px',
-    border: '1px solid #333',
-    backgroundColor: '#0a0a0a',
+    borderRadius: '10px',
+    border: '1px solid #1f1f27',
+    backgroundColor: '#08080c',
     color: '#fff',
     fontSize: '14px',
     outline: 'none',
-    transition: 'border-color 0.2s',
+    fontFamily: 'inherit',
   },
   button: {
     padding: '12px 24px',
-    borderRadius: '8px',
-    border: 'none',
-    backgroundColor: '#fff',
-    color: '#000',
-    fontSize: '16px',
-    fontWeight: 'bold',
+    borderRadius: '10px',
+    border: '1px solid #52fa35',
+    backgroundColor: 'rgba(82,250,53,0.05)',
+    color: '#52fa35',
+    fontSize: '15px',
+    fontWeight: '700',
     cursor: 'pointer',
-    transition: 'opacity 0.2s',
     marginTop: '10px',
+    fontFamily: 'inherit',
   },
   error: {
     padding: '12px',
-    borderRadius: '8px',
-    backgroundColor: 'rgba(255, 0, 0, 0.1)',
-    border: '1px solid #ff0000',
-    color: '#ff0000',
+    borderRadius: '10px',
+    backgroundColor: 'rgba(255, 68, 68, 0.1)',
+    border: '1px solid rgba(255,68,68,0.5)',
+    color: '#ff6b6b',
     fontSize: '14px',
     textAlign: 'center',
   },
   footer: {
     marginTop: '30px',
     paddingTop: '20px',
-    borderTop: '1px solid #333',
+    borderTop: '1px solid #1f1f27',
     textAlign: 'center',
   },
   footerText: {
     fontSize: '12px',
-    color: '#666',
+    color: '#8a8a95',
   },
 };
