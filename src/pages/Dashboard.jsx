@@ -147,12 +147,16 @@ export default function Dashboard() {
       const activeLives = activeLivesSnapshot.size;
 
       let totalRevenue = 0;
+      // ✅ Receita REAL da UOU: soma da comissão gravada em cada transação de receita de live
+      // (mesma fonte do Financeiro). Antes era uma estimativa por viewers × preço × 20%.
+      const transSnapshot = await safeDocs(collection(db, 'transactions'), 'transactions');
+      transSnapshot.forEach((t) => {
+        const d = t.data();
+        if (d.type === 'live_revenue') totalRevenue += d.uouFee || 0;
+      });
       const recentLives = [];
       livesSnapshot.forEach((docSnap) => {
         const live = docSnap.data();
-        if (live.status === 'ended') {
-          totalRevenue += (live.viewers || 0) * (live.price || 0) * 0.2;
-        }
         recentLives.push({ id: docSnap.id, ...live });
       });
       recentLives.sort((a, b) => (toDateSafe(b.createdAt) || 0) - (toDateSafe(a.createdAt) || 0));
@@ -243,7 +247,7 @@ export default function Dashboard() {
         </div>
 
         <div style={styles.statCard}>
-          <p style={styles.statLabel}>Receita Total (20%)</p>
+          <p style={styles.statLabel}>Receita da UOU (comissão)</p>
           <h2 style={styles.statValue}>
             R$ {stats.totalRevenue.toFixed(2)}
           </h2>
