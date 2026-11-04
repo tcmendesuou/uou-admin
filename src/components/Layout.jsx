@@ -164,7 +164,7 @@ const styles = {
   main: {
     flex: 1,
     overflow: 'auto',
-    padding: '40px 48px',
+    padding: '28px 32px',
     backgroundColor: '#010208',
   },
 };
