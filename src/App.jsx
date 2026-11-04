@@ -12,7 +12,7 @@ import Lives from './pages/Lives';
 import Financial from './pages/Financial';
 import Settings from './pages/Settings';
 import CreatorLevels from './pages/CreatorLevels';
-import Analytics from './pages/Analytics';
+import Companies from './pages/Companies';
 
 // Layout
 import Layout from './components/Layout';
@@ -76,7 +76,7 @@ function App() {
             <Route path="lives" element={<Lives />} />
             <Route path="financial" element={<Financial />} />
             <Route path="creator-levels" element={<CreatorLevels />} />
-            <Route path="analytics" element={<Analytics />} />
+            <Route path="companies" element={<Companies />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         ) : (

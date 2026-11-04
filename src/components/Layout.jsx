@@ -2,14 +2,13 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import logoImg from '../assets/logo.png';
 import { 
   LayoutDashboard, 
   Users, 
   Video, 
   DollarSign,
   TrendingUp,
-  BarChart3,
+  Building2,
   Settings, 
   LogOut 
 } from 'lucide-react';
@@ -30,20 +29,17 @@ export default function Layout() {
     { path: '/lives', icon: Video, label: 'Lives' },
     { path: '/financial', icon: DollarSign, label: 'Financeiro' },
     { path: '/creator-levels', icon: TrendingUp, label: 'Níveis de Criadores' },
-    { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+    { path: '/companies', icon: Building2, label: 'Empresas' },
     { path: '/settings', icon: Settings, label: 'Configurações' },
   ];
 
   return (
     <div style={styles.container}>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-      />
       {/* Sidebar */}
       <aside style={styles.sidebar}>
         <div style={styles.logo}>
-          <img src={logoImg} alt="UOU" style={styles.logoImg} />
+          <h1 style={styles.logoText}>UOU</h1>
+          <p style={styles.logoSubtext}>Admin</p>
         </div>
 
         <nav style={styles.nav}>
@@ -81,8 +77,7 @@ const styles = {
   container: {
     display: 'flex',
     height: '100vh',
-    backgroundColor: '#000',
-    fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif",
+    backgroundColor: '#f0f2f5',
   },
   sidebar: {
     width: '260px',
@@ -96,14 +91,19 @@ const styles = {
     marginBottom: '40px',
     paddingBottom: '20px',
     borderBottom: '1px solid #222',
-    display: 'flex',
-    justifyContent: 'center',
   },
-  logoImg: {
-    maxWidth: '210px',
-    maxHeight: '100px',
-    width: '100%',
-    objectFit: 'contain',
+  logoText: {
+    fontSize: '28px',
+    fontWeight: '900',
+    color: '#fff',
+    marginBottom: '4px',
+    letterSpacing: '2px',
+  },
+  logoSubtext: {
+    fontSize: '11px',
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: '2px',
   },
   nav: {
     flex: 1,
@@ -117,7 +117,7 @@ const styles = {
     gap: '12px',
     padding: '12px 16px',
     borderRadius: '8px',
-    color: '#ddd',
+    color: '#aaa',
     textDecoration: 'none',
     fontSize: '14px',
     fontWeight: '500',
@@ -125,8 +125,8 @@ const styles = {
     cursor: 'pointer',
   },
   navItemActive: {
-    backgroundColor: 'rgba(0, 230, 118, 0.7)',
-    color: '#fff',
+    backgroundColor: '#fff',
+    color: '#000',
   },
   logoutButton: {
     display: 'flex',
@@ -146,6 +146,6 @@ const styles = {
     flex: 1,
     overflow: 'auto',
     padding: '40px',
-    backgroundColor: '#000',
+    backgroundColor: '#f0f2f5',
   },
 };
