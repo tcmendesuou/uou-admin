@@ -87,9 +87,9 @@
   align-items: center;
   gap: 10px;
   padding: 12px 20px;
-  background: #0d0d0d;
+  background: #1b1b1d;
   border-radius: 10px;
-  border: 1px solid #1f1f27;
+  border: 1px solid #2a2a2d;
   color: #fff;
 }
 
@@ -104,12 +104,12 @@
 .badge.blue,
 .badge.green,
 .badge.purple,
-.badge.gold { background: #1f1f27; border: 1px solid #2a2a33; }
+.badge.gold { background: #2a2a2d; border: 1px solid #2f2f33; }
 
 .table-wrapper {
-  background: #0d0d0d;
+  background: #1b1b1d;
   border-radius: 12px;
-  border: 1px solid #1f1f27;
+  border: 1px solid #2a2a2d;
   overflow: hidden;
   margin-bottom: 30px;
 }
@@ -120,7 +120,7 @@
 }
 
 .levels-table thead {
-  background: #08080c;
+  background: #222224;
   color: #8a8a95;
 }
 
@@ -134,12 +134,12 @@
 }
 
 .levels-table tbody tr {
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid #2a2a2d;
   transition: background 0.2s;
 }
 
 .levels-table tbody tr:hover {
-  background: #14141a;
+  background: #242427;
 }
 
 /* Cores por tier */
@@ -174,13 +174,13 @@
   width: 100%;
   max-width: 120px;
   padding: 8px 12px;
-  border: 1px solid #1f1f27;
+  border: 1px solid #2a2a2d;
   border-radius: 8px;
   text-align: center;
   font-size: 14px;
   font-weight: 600;
   transition: all 0.2s;
-  background: #08080c;
+  background: #222224;
   color: #fff;
   font-family: inherit;
 }
@@ -188,7 +188,7 @@
 .cell-input:focus {
   outline: none;
   border-color: #666;
-  background: #0d0d0d;
+  background: #1b1b1d;
 }
 
 .cell-input:hover {

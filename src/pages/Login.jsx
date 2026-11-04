@@ -102,10 +102,10 @@ const styles = {
   card: {
     width: '100%',
     maxWidth: '400px',
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#1b1b1d',
     borderRadius: '16px',
     padding: '40px',
-    border: '1px solid #1f1f27',
+    border: '1px solid #2a2a2d',
   },
   header: {
     textAlign: 'center',
@@ -141,8 +141,8 @@ const styles = {
   input: {
     padding: '12px 16px',
     borderRadius: '10px',
-    border: '1px solid #1f1f27',
-    backgroundColor: '#08080c',
+    border: '1px solid #2a2a2d',
+    backgroundColor: '#222224',
     color: '#fff',
     fontSize: '14px',
     outline: 'none',
@@ -172,7 +172,7 @@ const styles = {
   footer: {
     marginTop: '30px',
     paddingTop: '20px',
-    borderTop: '1px solid #1f1f27',
+    borderTop: '1px solid #2a2a2d',
     textAlign: 'center',
   },
   footerText: {

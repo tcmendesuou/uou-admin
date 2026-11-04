@@ -39,9 +39,9 @@ export default function Layout() {
       {/* Visual global do painel (fundo escuro, barras de rolagem, campos) */}
       <style>{`
         html, body { background: #010208; margin: 0; color-scheme: dark; }
-        * { scrollbar-width: thin; scrollbar-color: #26262e transparent; }
+        * { scrollbar-width: thin; scrollbar-color: #2f2f33 transparent; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-thumb { background: #26262e; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: #2f2f33; border-radius: 8px; }
         input, textarea, select, button { font-family: inherit; }
         input:focus, textarea:focus, select:focus { border-color: #555 !important; outline: none; }
         input::placeholder, textarea::placeholder { color: #55555f; }
@@ -156,7 +156,7 @@ const styles = {
     borderRadius: '10px',
     color: '#ff6b6b',
     backgroundColor: 'transparent',
-    border: '1px solid #1f1f27',
+    border: '1px solid #2a2a2d',
     fontSize: '14px',
     fontWeight: '500',
     cursor: 'pointer',

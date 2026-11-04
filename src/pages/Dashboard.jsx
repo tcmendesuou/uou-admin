@@ -73,8 +73,12 @@ export default function Dashboard() {
       });
 
       // ✅ Última atividade de cada usuário, via analytics_events (session_start)
-      const eventsSnapshot = await getDocs(
-        query(collection(db, 'analytics_events'), where('type', '==', 'session_start'))
+      // Se uma coleção auxiliar falhar (ex.: sem permissão), o resto do painel continua funcionando
+      const safeDocs = async (q, nome) => {
+        try { return await getDocs(q); } catch (e) { console.warn('[Dashboard] sem acesso a', nome, e?.code || e?.message); return { forEach: () => {} }; }
+      };
+      const eventsSnapshot = await safeDocs(
+        query(collection(db, 'analytics_events'), where('type', '==', 'session_start')), 'analytics_events'
       );
       const lastActivityMap = {};
       eventsSnapshot.forEach((docSnap) => {
@@ -87,7 +91,7 @@ export default function Dashboard() {
       });
 
       // ✅ Contas deletadas (registradas a partir de agora, ver Users.jsx)
-      const deletedSnapshot = await getDocs(collection(db, 'deleted_users'));
+      const deletedSnapshot = await safeDocs(collection(db, 'deleted_users'), 'deleted_users');
       const deletedByMonth = {};
       deletedSnapshot.forEach((docSnap) => {
         const d = docSnap.data();
@@ -210,11 +214,11 @@ export default function Dashboard() {
           <div style={{ width: Math.max(chartData.length * PX_PER_MONTH, VISIBLE_MONTHS * PX_PER_MONTH), height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f27" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2d" />
                 <XAxis dataKey="month" stroke="#999" fontSize={12} />
                 <YAxis stroke="#999" fontSize={12} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0d0d0d', border: '1px solid #1f1f27', borderRadius: '8px' }}
+                  contentStyle={{ backgroundColor: '#1b1b1d', border: '1px solid #2a2a2d', borderRadius: '8px' }}
                   labelStyle={{ color: '#fff' }}
                 />
                 <Line type="monotone" dataKey="total" name="Total" stroke="#f0f0f0" strokeWidth={2} dot={{ r: 3 }} />
@@ -324,10 +328,10 @@ const styles = {
     marginBottom: '40px',
   },
   blockCard: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#1b1b1d',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #1f1f27',
+    border: '1px solid #2a2a2d',
     marginBottom: '40px',
   },
   blockTitle: {
@@ -377,10 +381,10 @@ const styles = {
     marginBottom: '40px',
   },
   statCard: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#1b1b1d',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #1f1f27',
+    border: '1px solid #2a2a2d',
   },
   statLabel: {
     fontSize: '14px',
@@ -398,10 +402,10 @@ const styles = {
     gap: '20px',
   },
   tableCard: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#1b1b1d',
     borderRadius: '12px',
     padding: '24px',
-    border: '1px solid #1f1f27',
+    border: '1px solid #2a2a2d',
   },
   tableTitle: {
     fontSize: '18px',
@@ -419,9 +423,9 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '12px',
-    backgroundColor: '#16161c',
+    backgroundColor: '#222224',
     borderRadius: '8px',
-    border: '1px solid #26262e',
+    border: '1px solid #2f2f33',
   },
   tableCell: {
     flex: 1,

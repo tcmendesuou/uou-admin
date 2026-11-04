@@ -321,9 +321,9 @@ const styles = {
     gap: '24px',
   },
   section: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#1b1b1d',
     borderRadius: '12px',
-    border: '1px solid #1f1f27',
+    border: '1px solid #2a2a2d',
     padding: '24px',
   },
   sectionTitle: {
@@ -355,8 +355,8 @@ const styles = {
     fontFamily: 'inherit',
     padding: '12px 16px',
     borderRadius: '8px',
-    border: '1px solid #1f1f27',
-    backgroundColor: '#08080c',
+    border: '1px solid #2a2a2d',
+    backgroundColor: '#222224',
     color: '#fff',
     fontSize: '14px',
     outline: 'none',
@@ -391,9 +391,9 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '12px 16px',
-    backgroundColor: '#08080c',
+    backgroundColor: '#222224',
     borderRadius: '8px',
-    border: '1px solid #1f1f27',
+    border: '1px solid #2a2a2d',
   },
   categoryName: {
     fontSize: '14px',
@@ -410,10 +410,10 @@ const styles = {
     alignItems: 'center',
   },
   infoCard: {
-    backgroundColor: '#08080c',
+    backgroundColor: '#222224',
     borderRadius: '8px',
     padding: '20px',
-    border: '1px solid #1f1f27',
+    border: '1px solid #2a2a2d',
   },
   infoCardTitle: {
     fontSize: '16px',
@@ -441,10 +441,10 @@ const styles = {
     color: '#fff',
   },
   rulesCard: {
-    backgroundColor: '#08080c',
+    backgroundColor: '#222224',
     borderRadius: '8px',
     padding: '20px',
-    border: '1px solid #1f1f27',
+    border: '1px solid #2a2a2d',
     marginBottom: '16px',
   },
   rulesTitle: {

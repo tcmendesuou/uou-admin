@@ -309,7 +309,7 @@ const s = {
   sub: { color: '#8a8a95', fontSize: 14, margin: '4px 0 20px' },
   tabs: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 },
   tab: {
-    background: '#0d0d0d', border: '1px solid #26262e', borderRadius: 20, padding: '8px 16px',
+    background: '#1b1b1d', border: '1px solid #2f2f33', borderRadius: 20, padding: '8px 16px',
     fontSize: 13, fontWeight: 600, color: '#cfcfd6', cursor: 'pointer',
   },
   tabActive: {
@@ -318,11 +318,11 @@ const s = {
   count: { opacity: 0.6, marginLeft: 4 },
   muted: { color: '#8a8a95', fontSize: 13 },
   card: {
-    background: '#0d0d0d', border: '1px solid #1f1f27', borderRadius: 12, padding: 20, marginBottom: 14,
+    background: '#1b1b1d', border: '1px solid #2a2a2d', borderRadius: 12, padding: 20, marginBottom: 14,
   },
   head: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 },
   icon: {
-    width: 42, height: 42, borderRadius: 10, background: '#16161c', display: 'flex',
+    width: 42, height: 42, borderRadius: 10, background: '#222224', display: 'flex',
     alignItems: 'center', justifyContent: 'center', color: '#f0f0f0',
   },
   name: { fontSize: 17, fontWeight: 700, color: '#f0f0f0' },
@@ -331,14 +331,14 @@ const s = {
   infoValue: { fontSize: 14, color: '#f0f0f0', marginTop: 2, wordBreak: 'break-word' },
   docs: { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 },
   docBtn: {
-    display: 'flex', alignItems: 'center', gap: 6, background: '#16161c', border: '1px solid #26262e',
+    display: 'flex', alignItems: 'center', gap: 6, background: '#222224', border: '1px solid #2f2f33',
     borderRadius: 8, padding: '7px 12px', fontSize: 13, cursor: 'pointer', color: '#f0f0f0',
   },
   suspendedTag: {
     marginLeft: 10, background: 'rgba(255,68,68,0.12)', color: '#ff6b6b', borderRadius: 8, padding: '2px 8px',
     fontSize: 11, fontWeight: 700,
   },
-  reason: { marginTop: 14, fontSize: 13, color: '#a0a0aa', background: '#08080c', borderRadius: 8, padding: '8px 12px' },
+  reason: { marginTop: 14, fontSize: 13, color: '#a0a0aa', background: '#222224', borderRadius: 8, padding: '8px 12px' },
   actions: { display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' },
   approve: {
     display: 'flex',
@@ -356,11 +356,11 @@ const s = {
     fontFamily: 'inherit',
   },
   ask: {
-    display: 'flex', alignItems: 'center', gap: 6, background: '#0d0d0d', color: '#f0f0f0', border: '1px solid #26262e',
+    display: 'flex', alignItems: 'center', gap: 6, background: '#1b1b1d', color: '#f0f0f0', border: '1px solid #2f2f33',
     borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
   },
   reject: {
-    display: 'flex', alignItems: 'center', gap: 6, background: '#0d0d0d', color: '#ff6b6b', border: '1px solid rgba(255,68,68,0.4)',
+    display: 'flex', alignItems: 'center', gap: 6, background: '#1b1b1d', color: '#ff6b6b', border: '1px solid rgba(255,68,68,0.4)',
     borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
   },
 };
