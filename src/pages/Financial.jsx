@@ -11,6 +11,9 @@ export default function Financial() {
     uouPercent: 30,
   });
   const [simulatorValue, setSimulatorValue] = useState(10);
+  const [donationConfig, setDonationConfig] = useState({ liveUouPercent: 25, postUouPercent: 25 });
+  const [donationSim, setDonationSim] = useState(10);
+  const [savingDonation, setSavingDonation] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
@@ -27,6 +30,7 @@ export default function Financial() {
   useEffect(() => {
     loadFinancialData();
     loadLiveConfig();
+    loadDonationConfig();
   }, []);
 
   useEffect(() => {
@@ -194,6 +198,34 @@ export default function Financial() {
     finally { setSavingConfig(false); }
   };
 
+  // ✅ Donations: % da doação que fica com o UOU (o resto vai ao criador).
+  // Salvo em settings/donationConfig → { liveUouPercent, postUouPercent }. O app lê daqui.
+  const loadDonationConfig = async () => {
+    try {
+      const d = await getDoc(doc(db, 'settings', 'donationConfig'));
+      if (d.exists()) setDonationConfig(prev => ({ ...prev, ...d.data() }));
+    } catch (e) { console.error(e); }
+  };
+
+  const saveDonationConfig = async () => {
+    setSavingDonation(true);
+    try {
+      await setDoc(doc(db, 'settings', 'donationConfig'), {
+        liveUouPercent: donationConfig.liveUouPercent,
+        postUouPercent: donationConfig.postUouPercent,
+        updatedAt: new Date().toISOString(),
+      });
+      alert('Configurações de Donations salvas!');
+    } catch (e) { alert('Erro: ' + e.message); }
+    finally { setSavingDonation(false); }
+  };
+
+  const calcDonation = (percent) => {
+    const x = parseFloat(donationSim) || 0;
+    const uou = x * (percent / 100);
+    return { x, uou, criador: x - uou };
+  };
+
   const calcSimulator = () => {
     const x = parseFloat(simulatorValue) || 0;
     const imposto = x * (liveConfig.impostoPercent / 100);
@@ -216,7 +248,64 @@ export default function Financial() {
       <div style={styles.internalTabBar}>
         <button style={{ ...styles.internalTab, ...(activeTab === 'dashboard' ? styles.internalTabActive : {}) }} onClick={() => setActiveTab('dashboard')}>Dashboard Financeiro</button>
         <button style={{ ...styles.internalTab, ...(activeTab === 'lives' ? styles.internalTabActive : {}) }} onClick={() => setActiveTab('lives')}>Lives Premiadas</button>
+        <button style={{ ...styles.internalTab, ...(activeTab === 'donations' ? styles.internalTabActive : {}) }} onClick={() => setActiveTab('donations')}>Donations</button>
       </div>
+
+      {activeTab === 'donations' && (
+        <div>
+          <div style={styles.livesHeader}>
+            <div>
+              <h1 style={styles.title}>Donations</h1>
+              <p style={styles.subtitle}>Divisão das doações entre UOU e Criador</p>
+            </div>
+            <button style={styles.saveBtn} onClick={saveDonationConfig} disabled={savingDonation}>{savingDonation ? 'Salvando...' : 'Salvar'}</button>
+          </div>
+          <div style={styles.livesGrid}>
+            <div style={styles.configCard}>
+              <h2 style={styles.cardTitle}>Parâmetros</h2>
+              {[
+                { key: 'liveUouPercent', label: 'Doações em Live' },
+                { key: 'postUouPercent', label: 'Doações em Post' },
+              ].map((f, i) => (
+                <div key={f.key}>
+                  {i > 0 && <div style={styles.styleDivider} />}
+                  <div style={styles.configRow}>
+                    <label style={styles.configLabel}>{f.label} — UOU (%)<span style={styles.configHint}>Criador recebe: {100 - donationConfig[f.key]}%</span></label>
+                    <input type="number" min="0" max="100" step="1" value={donationConfig[f.key]} onChange={(e) => setDonationConfig({ ...donationConfig, [f.key]: Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)) })} style={styles.configInput} />
+                  </div>
+                  <div style={styles.splitBar}>
+                    <div style={{ ...styles.splitUou, width: donationConfig[f.key] + '%' }}>UOU {donationConfig[f.key]}%</div>
+                    <div style={{ ...styles.splitCriador, width: (100 - donationConfig[f.key]) + '%' }}>Criador {100 - donationConfig[f.key]}%</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={styles.simulatorCard}>
+              <h2 style={styles.cardTitle}>Simulador</h2>
+              <div style={styles.configRow}>
+                <label style={styles.configLabel}>Valor da doação (R$)</label>
+                <input type="number" min="0" step="1" value={donationSim} onChange={(e) => setDonationSim(e.target.value)} style={styles.configInput} />
+              </div>
+              {[
+                { title: 'Em Live', percent: donationConfig.liveUouPercent },
+                { title: 'Em Post', percent: donationConfig.postUouPercent },
+              ].map((b) => {
+                const r = calcDonation(b.percent);
+                return (
+                  <div key={b.title} style={styles.calcResult}>
+                    <div style={styles.calcRow}><span style={{ ...styles.calcLabel, fontWeight: '700', color: '#f0f0f0' }}>{b.title}</span><span style={styles.calcValue}>R$ {r.x.toFixed(2)}</span></div>
+                    <div style={styles.calcRow}><span style={{ ...styles.calcLabel, color: '#6366f1' }}>UOU ({b.percent}%)</span><span style={{ ...styles.calcValue, color: '#6366f1' }}>R$ {r.uou.toFixed(2)}</span></div>
+                    <div style={{ ...styles.calcRow, backgroundColor: 'rgba(34,197,94,0.1)', borderRadius: '8px', padding: '10px 12px' }}>
+                      <span style={{ ...styles.calcLabel, color: '#fff', fontWeight: '700' }}>Criador recebe</span>
+                      <span style={{ ...styles.calcValue, color: '#fff', fontWeight: '700', fontSize: '18px' }}>R$ {r.criador.toFixed(2)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'lives' && (
         <div>
