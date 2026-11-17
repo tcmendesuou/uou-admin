@@ -3,6 +3,135 @@ import { collection, getDocs, doc, updateDoc, addDoc, getDoc, setDoc, deleteDoc 
 import { db } from '../firebase';
 import { DollarSign, TrendingUp, Users, Video, Search, Check, X, Trash2 } from 'lucide-react';
 
+// ===========================================================================
+// Regras financeiras (Livro de Regras do UOU) — valores de partida
+// Salvas em settings/financeConfig. O app lê daqui (e dos documentos antigos
+// liveConfig / donationConfig, que a aba "Regras" mantém em sincronia).
+// ===========================================================================
+const RULES_DEFAULT = {
+  live: { estruturaPercent: 10, uouPercent: 20, prizePotPercent: 50, minPaid: 5, minPremiada: 10 },
+  donation: { liveUouPercent: 25, postUouPercent: 25, minAmount: 1, maxAmount: 500 },
+  subscription: { uouPercent: 25, minAmount: 3 },
+  verification: { price: 5, uouPercent: 100 },
+  external: { depositFeePercent: 3.5, withdrawFeePercent: 2, withdrawBankPercent: 1 },
+  limits: { minDeposit: 5, minWithdraw: 5, dailyLimit: 3500, monthlyLimit: 15000, holdHours: 24 },
+};
+
+const mergeRules = (saved) => {
+  const out = {};
+  Object.keys(RULES_DEFAULT).forEach((k) => { out[k] = { ...RULES_DEFAULT[k], ...((saved && saved[k]) || {}) }; });
+  return out;
+};
+
+// Arredondamento: 2 casas; taxas do UOU/estrutura para BAIXO e o criador fica com a sobra do centavo.
+const floorCents = (n) => Math.floor(n * 100 + 1e-9) / 100;
+const roundCents = (n) => Math.round(n * 100) / 100;
+const money = (n) => `R$ ${(Number(n) || 0).toFixed(2).replace('.', ',')}`;
+
+// Cada cenário devolve linhas { label, value, tone }; tone: cost | uou | creator | total | plain
+const SCENARIOS = [
+  { id: 'livePaga', label: 'Live Paga', unit: 'Valor da entrada (R$)', start: 10 },
+  { id: 'livePremiada', label: 'Live Premiada', unit: 'Valor da entrada (R$)', start: 10 },
+  { id: 'donLive', label: 'Donation em Live', unit: 'Valor da doação (R$)', start: 10 },
+  { id: 'donPost', label: 'Donation em Post', unit: 'Valor da doação (R$)', start: 10 },
+  { id: 'assinatura', label: 'Assinatura', unit: 'Valor da assinatura (R$)', start: 3 },
+  { id: 'verificacao', label: 'Verificação', unit: 'Valor da verificação (R$)', start: 5 },
+  { id: 'deposito', label: 'Depósito (PIX)', unit: 'Valor depositado (R$)', start: 100 },
+  { id: 'saque', label: 'Saque (PIX)', unit: 'Valor retirado (R$)', start: 100 },
+];
+
+function simulate(id, x, r) {
+  const rows = [];
+  const share = (total, uouPct) => { const uou = floorCents(total * (uouPct / 100)); return { uou, creator: roundCents(total - uou) }; };
+  switch (id) {
+    case 'livePaga':
+    case 'livePremiada': {
+      const estrutura = floorCents(x * (r.live.estruturaPercent / 100));
+      const disp = roundCents(x - estrutura);
+      const { uou, creator } = share(disp, r.live.uouPercent);
+      rows.push({ label: 'Valor pago', value: x, tone: 'plain' });
+      rows.push({ label: `Estrutura (${r.live.estruturaPercent}%)`, value: -estrutura, tone: 'cost' });
+      rows.push({ label: 'Disponível', value: disp, tone: 'total' });
+      rows.push({ label: `Taxa UOU (${r.live.uouPercent}%)`, value: uou, tone: 'uou' });
+      rows.push({ label: `Criador (${roundCents(100 - r.live.uouPercent)}%)`, value: creator, tone: 'creator' });
+      if (id === 'livePremiada') {
+        const prize = floorCents(creator * (r.live.prizePotPercent / 100));
+        rows.push({ label: `Prêmio pelo pote (${r.live.prizePotPercent}% da parte do criador)`, value: prize, tone: 'prize' });
+        rows.push({ label: 'Criador fica com', value: roundCents(creator - prize), tone: 'creator' });
+        rows.push({ label: 'Prêmio sobre o valor pago', value: `${x > 0 ? ((prize / x) * 100).toFixed(1).replace('.', ',') : '0,0'}%`, tone: 'note' });
+      }
+      break;
+    }
+    case 'donLive':
+    case 'donPost': {
+      const pct = id === 'donLive' ? r.donation.liveUouPercent : r.donation.postUouPercent;
+      const { uou, creator } = share(x, pct);
+      rows.push({ label: 'Valor da doação', value: x, tone: 'plain' });
+      rows.push({ label: `Taxa UOU (${pct}%)`, value: uou, tone: 'uou' });
+      rows.push({ label: `Criador (${roundCents(100 - pct)}%)`, value: creator, tone: 'creator' });
+      break;
+    }
+    case 'assinatura': {
+      const { uou, creator } = share(x, r.subscription.uouPercent);
+      rows.push({ label: 'Valor da assinatura', value: x, tone: 'plain' });
+      rows.push({ label: `Taxa UOU (${r.subscription.uouPercent}%)`, value: uou, tone: 'uou' });
+      rows.push({ label: `Criador (${roundCents(100 - r.subscription.uouPercent)}%)`, value: creator, tone: 'creator' });
+      break;
+    }
+    case 'verificacao': {
+      const { uou, creator } = share(x, r.verification.uouPercent);
+      rows.push({ label: 'Valor da verificação', value: x, tone: 'plain' });
+      rows.push({ label: `UOU (${r.verification.uouPercent}%)`, value: uou, tone: 'uou' });
+      if (creator > 0) rows.push({ label: 'Criador', value: creator, tone: 'creator' });
+      break;
+    }
+    case 'deposito': {
+      const fee = roundCents(x * (r.external.depositFeePercent / 100));
+      rows.push({ label: 'Valor transferido (PIX)', value: x, tone: 'plain' });
+      rows.push({ label: `Taxa do banco (${r.external.depositFeePercent}%)`, value: -fee, tone: 'cost' });
+      rows.push({ label: 'Cai na carteira', value: roundCents(x - fee), tone: 'creator' });
+      break;
+    }
+    case 'saque': {
+      const total = roundCents(x * (r.external.withdrawFeePercent / 100));
+      const bank = roundCents(x * (r.external.withdrawBankPercent / 100));
+      rows.push({ label: 'Valor retirado da carteira', value: x, tone: 'plain' });
+      rows.push({ label: `Taxa total (${r.external.withdrawFeePercent}%)`, value: -total, tone: 'cost' });
+      rows.push({ label: `· Banco (${r.external.withdrawBankPercent}%)`, value: bank, tone: 'note' });
+      rows.push({ label: `· UOU (${roundCents(r.external.withdrawFeePercent - r.external.withdrawBankPercent)}%)`, value: roundCents(total - bank), tone: 'uou' });
+      rows.push({ label: 'Cai na conta do usuário', value: roundCents(x - total), tone: 'creator' });
+      break;
+    }
+    default: break;
+  }
+  return rows;
+}
+
+function RuleField({ label, hint, value, onChange, suffix, max, step = 1 }) {
+  return (
+    <div style={styles.ruleField}>
+      <label style={styles.configLabel}>{label}{hint && <span style={styles.configHint}>{hint}</span>}</label>
+      <div style={styles.ruleInputWrap}>
+        <input
+          type="number"
+          min="0"
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => {
+            let n = parseFloat(e.target.value);
+            if (!Number.isFinite(n) || n < 0) n = 0;
+            if (max !== undefined && n > max) n = max;
+            onChange(n);
+          }}
+          style={{ ...styles.configInput, paddingRight: suffix ? '44px' : '14px' }}
+        />
+        {suffix && <span style={styles.ruleSuffix}>{suffix}</span>}
+      </div>
+    </div>
+  );
+}
+
 export default function Financial() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [liveConfig, setLiveConfig] = useState({
@@ -15,6 +144,11 @@ export default function Financial() {
   const [donationSim, setDonationSim] = useState(10);
   const [savingDonation, setSavingDonation] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
+  const [rules, setRules] = useState(() => mergeRules(null));
+  const [rulesSaved, setRulesSaved] = useState(false); // já existe settings/financeConfig?
+  const [savingRules, setSavingRules] = useState(false);
+  const [scenario, setScenario] = useState('livePaga');
+  const [ruleSim, setRuleSim] = useState(10);
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [stats, setStats] = useState({
@@ -31,6 +165,7 @@ export default function Financial() {
     loadFinancialData();
     loadLiveConfig();
     loadDonationConfig();
+    loadRules();
   }, []);
 
   useEffect(() => {
@@ -220,6 +355,45 @@ export default function Financial() {
     finally { setSavingDonation(false); }
   };
 
+  const loadRules = async () => {
+    try {
+      const d = await getDoc(doc(db, 'settings', 'financeConfig'));
+      if (d.exists()) { setRules(mergeRules(d.data())); setRulesSaved(true); }
+    } catch (e) { console.error(e); }
+  };
+
+  const setRule = (section, key, value) =>
+    setRules((prev) => ({ ...prev, [section]: { ...prev[section], [key]: value } }));
+
+  const saveRules = async () => {
+    if (rules.external.withdrawBankPercent > rules.external.withdrawFeePercent) {
+      alert('A parte do banco no saque não pode ser maior que a taxa total de saque.');
+      return;
+    }
+    if (!window.confirm('Salvar as regras? Os valores de lives e donations passam a valer no app imediatamente.')) return;
+    setSavingRules(true);
+    try {
+      const now = new Date().toISOString();
+      await setDoc(doc(db, 'settings', 'financeConfig'), { ...rules, updatedAt: now });
+      // Mantém os documentos que o app já lê em sincronia (imposto fora por enquanto = 0)
+      await setDoc(doc(db, 'settings', 'liveConfig'), {
+        impostoPercent: 0,
+        estruturaPercent: rules.live.estruturaPercent,
+        uouPercent: rules.live.uouPercent,
+      }, { merge: true });
+      await setDoc(doc(db, 'settings', 'donationConfig'), {
+        liveUouPercent: rules.donation.liveUouPercent,
+        postUouPercent: rules.donation.postUouPercent,
+        updatedAt: now,
+      }, { merge: true });
+      setRulesSaved(true);
+      loadLiveConfig();
+      loadDonationConfig();
+      alert('Regras salvas!');
+    } catch (e) { alert('Erro: ' + e.message); }
+    finally { setSavingRules(false); }
+  };
+
   const calcDonation = (percent) => {
     const x = parseFloat(donationSim) || 0;
     const uou = x * (percent / 100);
@@ -247,9 +421,119 @@ export default function Financial() {
       {/* TopBar interno */}
       <div style={styles.internalTabBar}>
         <button style={{ ...styles.internalTab, ...(activeTab === 'dashboard' ? styles.internalTabActive : {}) }} onClick={() => setActiveTab('dashboard')}>Dashboard Financeiro</button>
+        <button style={{ ...styles.internalTab, ...(activeTab === 'regras' ? styles.internalTabActive : {}) }} onClick={() => setActiveTab('regras')}>Regras</button>
         <button style={{ ...styles.internalTab, ...(activeTab === 'lives' ? styles.internalTabActive : {}) }} onClick={() => setActiveTab('lives')}>Lives Premiadas</button>
         <button style={{ ...styles.internalTab, ...(activeTab === 'donations' ? styles.internalTabActive : {}) }} onClick={() => setActiveTab('donations')}>Donations</button>
       </div>
+
+      {activeTab === 'regras' && (
+        <div>
+          <div style={styles.livesHeader}>
+            <div>
+              <h1 style={styles.title}>Regras financeiras</h1>
+              <p style={styles.subtitle}>
+                Todas as porcentagens, mínimos e limites do UOU num só lugar (Livro de Regras).
+                {!rulesSaved && ' Ainda não salvo: mostrando os valores de partida do Livro de Regras.'}
+              </p>
+            </div>
+            <button style={styles.saveBtn} onClick={saveRules} disabled={savingRules}>{savingRules ? 'Salvando...' : 'Salvar'}</button>
+          </div>
+
+          <div style={styles.livesGrid}>
+            <div style={styles.rulesCol}>
+              <div style={styles.configCard}>
+                <h2 style={styles.cardTitle}>Lives</h2>
+                <div style={styles.fieldsGrid}>
+                  <RuleField label="Estrutura (%)" hint="Custo por pessoa, sobre o valor pago" suffix="%" max={100} step={0.5} value={rules.live.estruturaPercent} onChange={(v) => setRule('live', 'estruturaPercent', v)} />
+                  <RuleField label="Taxa UOU (%)" hint={`Do disponível. Criador: ${roundCents(100 - rules.live.uouPercent)}%`} suffix="%" max={100} step={0.5} value={rules.live.uouPercent} onChange={(v) => setRule('live', 'uouPercent', v)} />
+                  <RuleField label="Prêmio pelo pote (%)" hint="Live Premiada: % da parte do criador" suffix="%" max={100} value={rules.live.prizePotPercent} onChange={(v) => setRule('live', 'prizePotPercent', v)} />
+                  <div />
+                  <RuleField label="Live Paga: mínimo (R$)" suffix="R$" step={0.5} value={rules.live.minPaid} onChange={(v) => setRule('live', 'minPaid', v)} />
+                  <RuleField label="Live Premiada: mínimo (R$)" suffix="R$" step={0.5} value={rules.live.minPremiada} onChange={(v) => setRule('live', 'minPremiada', v)} />
+                </div>
+                <div style={styles.splitBar}>
+                  <div style={{ ...styles.splitUou, width: rules.live.uouPercent + '%' }}>UOU {rules.live.uouPercent}%</div>
+                  <div style={{ ...styles.splitCriador, width: (100 - rules.live.uouPercent) + '%' }}>Criador {roundCents(100 - rules.live.uouPercent)}%</div>
+                </div>
+                <p style={styles.ruleNote}>Imposto não entra nas contas por enquanto.</p>
+              </div>
+
+              <div style={styles.configCard}>
+                <h2 style={styles.cardTitle}>Donations, Assinatura e Verificação</h2>
+                <div style={styles.fieldsGrid}>
+                  <RuleField label="Donation em Live — UOU (%)" hint={`Criador: ${roundCents(100 - rules.donation.liveUouPercent)}%`} suffix="%" max={100} value={rules.donation.liveUouPercent} onChange={(v) => setRule('donation', 'liveUouPercent', v)} />
+                  <RuleField label="Donation em Post — UOU (%)" hint={`Criador: ${roundCents(100 - rules.donation.postUouPercent)}%`} suffix="%" max={100} value={rules.donation.postUouPercent} onChange={(v) => setRule('donation', 'postUouPercent', v)} />
+                  <RuleField label="Donation: mínimo (R$)" suffix="R$" step={0.5} value={rules.donation.minAmount} onChange={(v) => setRule('donation', 'minAmount', v)} />
+                  <RuleField label="Donation: máximo (R$)" suffix="R$" step={1} value={rules.donation.maxAmount} onChange={(v) => setRule('donation', 'maxAmount', v)} />
+                  <RuleField label="Assinatura — UOU (%)" hint={`Criador: ${roundCents(100 - rules.subscription.uouPercent)}%`} suffix="%" max={100} value={rules.subscription.uouPercent} onChange={(v) => setRule('subscription', 'uouPercent', v)} />
+                  <RuleField label="Assinatura: mínimo (R$)" suffix="R$" step={0.5} value={rules.subscription.minAmount} onChange={(v) => setRule('subscription', 'minAmount', v)} />
+                  <RuleField label="Verificação: valor (R$)" suffix="R$" step={0.5} value={rules.verification.price} onChange={(v) => setRule('verification', 'price', v)} />
+                  <RuleField label="Verificação — UOU (%)" suffix="%" max={100} value={rules.verification.uouPercent} onChange={(v) => setRule('verification', 'uouPercent', v)} />
+                </div>
+                <p style={styles.ruleNote}>No Firestore, as regras de segurança ainda limitam donations em live entre R$ 1 e R$ 500, independente do que estiver aqui.</p>
+              </div>
+
+              <div style={styles.configCard}>
+                <h2 style={styles.cardTitle}>Dinheiro de e para fora (PIX)</h2>
+                <div style={styles.fieldsGrid}>
+                  <RuleField label="Depósito: taxa do banco (%)" hint="Descontada do valor transferido" suffix="%" max={100} step={0.1} value={rules.external.depositFeePercent} onChange={(v) => setRule('external', 'depositFeePercent', v)} />
+                  <div />
+                  <RuleField label="Saque: taxa total (%)" hint="Descontada do valor retirado" suffix="%" max={100} step={0.1} value={rules.external.withdrawFeePercent} onChange={(v) => setRule('external', 'withdrawFeePercent', v)} />
+                  <RuleField label="Saque: parte do banco (%)" hint={`Parte do UOU: ${roundCents(rules.external.withdrawFeePercent - rules.external.withdrawBankPercent)}%`} suffix="%" max={100} step={0.1} value={rules.external.withdrawBankPercent} onChange={(v) => setRule('external', 'withdrawBankPercent', v)} />
+                </div>
+              </div>
+
+              <div style={styles.configCard}>
+                <h2 style={styles.cardTitle}>Limites e carência</h2>
+                <div style={styles.fieldsGrid}>
+                  <RuleField label="Depósito mínimo (R$)" suffix="R$" step={0.5} value={rules.limits.minDeposit} onChange={(v) => setRule('limits', 'minDeposit', v)} />
+                  <RuleField label="Saque mínimo (R$)" suffix="R$" step={0.5} value={rules.limits.minWithdraw} onChange={(v) => setRule('limits', 'minWithdraw', v)} />
+                  <RuleField label="Limite por dia, por pessoa (R$)" suffix="R$" step={100} value={rules.limits.dailyLimit} onChange={(v) => setRule('limits', 'dailyLimit', v)} />
+                  <RuleField label="Limite por mês, por pessoa (R$)" suffix="R$" step={500} value={rules.limits.monthlyLimit} onChange={(v) => setRule('limits', 'monthlyLimit', v)} />
+                  <RuleField label="Carência (horas)" hint="Tempo até o dinheiro poder ser sacado" suffix="h" step={1} value={rules.limits.holdHours} onChange={(v) => setRule('limits', 'holdHours', v)} />
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.rulesCol}>
+              <div style={{ ...styles.simulatorCard, position: 'sticky', top: '16px' }}>
+                <h2 style={styles.cardTitle}>Simulador</h2>
+                <div style={styles.pillRow}>
+                  {SCENARIOS.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      style={{ ...styles.pill, ...(scenario === s.id ? styles.pillActive : {}) }}
+                      onClick={() => { setScenario(s.id); setRuleSim(s.start); }}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+                <div style={styles.configRow}>
+                  <label style={styles.configLabel}>{SCENARIOS.find((s) => s.id === scenario).unit}</label>
+                  <input type="number" min="0" step="1" value={ruleSim} onChange={(e) => setRuleSim(e.target.value)} style={styles.configInput} />
+                </div>
+                <div style={styles.calcResult}>
+                  {simulate(scenario, parseFloat(ruleSim) || 0, rules).map((row, i) => {
+                    const color = { cost: '#ef4444', uou: '#6366f1', creator: '#fff', total: '#f0f0f0', prize: '#facc15', note: '#8a8a95', plain: '#f0f0f0' }[row.tone];
+                    const bold = row.tone === 'total' || row.tone === 'creator';
+                    return (
+                      <div key={i} style={{ ...styles.calcRow, ...(row.tone === 'creator' ? { backgroundColor: 'rgba(34,197,94,0.1)', borderRadius: '8px', padding: '10px 12px' } : {}) }}>
+                        <span style={{ ...styles.calcLabel, color, fontWeight: bold ? '700' : '400' }}>{row.label}</span>
+                        <span style={{ ...styles.calcValue, color, fontWeight: bold ? '700' : '400' }}>
+                          {typeof row.value === 'number' ? (row.value < 0 ? `- ${money(-row.value)}` : money(row.value)) : row.value}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p style={styles.ruleNote}>Arredondamento: estrutura e taxa do UOU para baixo; o criador fica com a sobra do centavo.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'donations' && (
         <div>
@@ -898,6 +1182,15 @@ const styles = {
     fontSize: '14px',
     color: '#f0f0f0',
   },
+  rulesCol: { display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0, alignSelf: 'start' },
+  fieldsGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '16px' },
+  ruleField: { marginBottom: '4px' },
+  ruleInputWrap: { position: 'relative', marginBottom: '16px' },
+  ruleSuffix: { position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: '#8a8a95', fontSize: '13px', pointerEvents: 'none' },
+  ruleNote: { color: '#8a8a95', fontSize: '12px', margin: '14px 0 0 0', lineHeight: 1.5 },
+  pillRow: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' },
+  pill: { padding: '7px 12px', borderRadius: '999px', border: '1px solid #2a2a2d', backgroundColor: '#222224', color: '#b5b5bd', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' },
+  pillActive: { borderColor: '#fff', color: '#fff', backgroundColor: 'rgba(255,255,255,0.08)', fontWeight: '700' },
   calcDivider: {
     borderTop: '1px solid #2a2a2d',
     margin: '4px 0',
