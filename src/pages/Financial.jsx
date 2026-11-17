@@ -9,8 +9,8 @@ import { DollarSign, TrendingUp, Users, Video, Search, Check, X, Trash2 } from '
 // liveConfig / donationConfig, que a aba "Regras" mantém em sincronia).
 // ===========================================================================
 const RULES_DEFAULT = {
-  live: { estruturaPercent: 10, uouPercent: 20, prizePotPercent: 50, minPaid: 5, minPremiada: 10 },
-  donation: { liveUouPercent: 25, postUouPercent: 25, minAmount: 1, maxAmount: 500 },
+  live: { estruturaPercent: 10, uouPercent: 20, minPaid: 5, minPremiada: 10 },
+  donation: { liveUouPercent: 25, postUouPercent: 25 },
   subscription: { uouPercent: 25, minAmount: 3 },
   verification: { price: 5, uouPercent: 100 },
   external: { depositFeePercent: 3.5, withdrawFeePercent: 2, withdrawBankPercent: 1 },
@@ -55,10 +55,7 @@ function simulate(id, x, r) {
       rows.push({ label: `Taxa UOU (${r.live.uouPercent}%)`, value: uou, tone: 'uou' });
       rows.push({ label: `Criador (${roundCents(100 - r.live.uouPercent)}%)`, value: creator, tone: 'creator' });
       if (id === 'livePremiada') {
-        const prize = floorCents(creator * (r.live.prizePotPercent / 100));
-        rows.push({ label: `Prêmio pelo pote (${r.live.prizePotPercent}% da parte do criador)`, value: prize, tone: 'prize' });
-        rows.push({ label: 'Criador fica com', value: roundCents(creator - prize), tone: 'creator' });
-        rows.push({ label: 'Prêmio sobre o valor pago', value: `${x > 0 ? ((prize / x) * 100).toFixed(1).replace('.', ',') : '0,0'}%`, tone: 'note' });
+        rows.push({ label: 'Prêmio pelo pote', value: 'definido pelo criador na live', tone: 'note' });
       }
       break;
     }
@@ -446,8 +443,6 @@ export default function Financial() {
                 <div style={styles.fieldsGrid}>
                   <RuleField label="Estrutura (%)" hint="Custo por pessoa, sobre o valor pago" suffix="%" max={100} step={0.5} value={rules.live.estruturaPercent} onChange={(v) => setRule('live', 'estruturaPercent', v)} />
                   <RuleField label="Taxa UOU (%)" hint={`Do disponível. Criador: ${roundCents(100 - rules.live.uouPercent)}%`} suffix="%" max={100} step={0.5} value={rules.live.uouPercent} onChange={(v) => setRule('live', 'uouPercent', v)} />
-                  <RuleField label="Prêmio pelo pote (%)" hint="Live Premiada: % da parte do criador" suffix="%" max={100} value={rules.live.prizePotPercent} onChange={(v) => setRule('live', 'prizePotPercent', v)} />
-                  <div />
                   <RuleField label="Live Paga: mínimo (R$)" suffix="R$" step={0.5} value={rules.live.minPaid} onChange={(v) => setRule('live', 'minPaid', v)} />
                   <RuleField label="Live Premiada: mínimo (R$)" suffix="R$" step={0.5} value={rules.live.minPremiada} onChange={(v) => setRule('live', 'minPremiada', v)} />
                 </div>
@@ -463,14 +458,11 @@ export default function Financial() {
                 <div style={styles.fieldsGrid}>
                   <RuleField label="Donation em Live — UOU (%)" hint={`Criador: ${roundCents(100 - rules.donation.liveUouPercent)}%`} suffix="%" max={100} value={rules.donation.liveUouPercent} onChange={(v) => setRule('donation', 'liveUouPercent', v)} />
                   <RuleField label="Donation em Post — UOU (%)" hint={`Criador: ${roundCents(100 - rules.donation.postUouPercent)}%`} suffix="%" max={100} value={rules.donation.postUouPercent} onChange={(v) => setRule('donation', 'postUouPercent', v)} />
-                  <RuleField label="Donation: mínimo (R$)" suffix="R$" step={0.5} value={rules.donation.minAmount} onChange={(v) => setRule('donation', 'minAmount', v)} />
-                  <RuleField label="Donation: máximo (R$)" suffix="R$" step={1} value={rules.donation.maxAmount} onChange={(v) => setRule('donation', 'maxAmount', v)} />
                   <RuleField label="Assinatura — UOU (%)" hint={`Criador: ${roundCents(100 - rules.subscription.uouPercent)}%`} suffix="%" max={100} value={rules.subscription.uouPercent} onChange={(v) => setRule('subscription', 'uouPercent', v)} />
                   <RuleField label="Assinatura: mínimo (R$)" suffix="R$" step={0.5} value={rules.subscription.minAmount} onChange={(v) => setRule('subscription', 'minAmount', v)} />
                   <RuleField label="Verificação: valor (R$)" suffix="R$" step={0.5} value={rules.verification.price} onChange={(v) => setRule('verification', 'price', v)} />
                   <RuleField label="Verificação — UOU (%)" suffix="%" max={100} value={rules.verification.uouPercent} onChange={(v) => setRule('verification', 'uouPercent', v)} />
                 </div>
-                <p style={styles.ruleNote}>No Firestore, as regras de segurança ainda limitam donations em live entre R$ 1 e R$ 500, independente do que estiver aqui.</p>
               </div>
 
               <div style={styles.configCard}>
