@@ -13,6 +13,7 @@ import Financial from './pages/Financial';
 import Settings from './pages/Settings';
 import CreatorLevels from './pages/CreatorLevels';
 import Companies from './pages/Companies';
+import LiveParams from './pages/LiveParams';
 
 // Layout
 import Layout from './components/Layout';
@@ -77,6 +78,7 @@ function App() {
             <Route path="financial" element={<Financial />} />
             <Route path="creator-levels" element={<CreatorLevels />} />
             <Route path="companies" element={<Companies />} />
+            <Route path="live-params" element={<LiveParams />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         ) : (

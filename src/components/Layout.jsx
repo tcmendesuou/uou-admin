@@ -10,6 +10,7 @@ import {
   DollarSign,
   TrendingUp,
   Building2,
+  SlidersHorizontal,
   Settings,
   LogOut,
 } from 'lucide-react';
@@ -31,6 +32,7 @@ export default function Layout() {
     { path: '/financial', icon: DollarSign, label: 'Financeiro' },
     { path: '/creator-levels', icon: TrendingUp, label: 'Níveis de Criadores' },
     { path: '/companies', icon: Building2, label: 'Empresas' },
+    { path: '/live-params', icon: SlidersHorizontal, label: 'Parâmetros das Lives' },
     { path: '/settings', icon: Settings, label: 'Configurações' },
   ];
 
